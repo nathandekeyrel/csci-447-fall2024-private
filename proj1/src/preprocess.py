@@ -21,7 +21,7 @@ def preprocess_data(filepath):
         - The first: The preprocessed original dataset
         - The second: The preprocessed dataset with added noise
     """
-    df = pd.read_csv(filepath)
+    df = pd.read_csv(filepath, header=None)
     if 'house-votes-84' not in filepath:
         df = df.replace('?', np.nan)
     df = remove_missing_values(df)
@@ -45,10 +45,11 @@ def remove_missing_values(df):
 
 def get_num_bins(data):
     """
-    Adaptive binning strategy for continuous variables
+    Adaptive binning strategy for continuous variables,
+    based on Sturge's rule.
 
     :param data: Given a column of a pandas dataframe
-    :return: Number of bins based on Sturge's rule
+    :return: Number of bins
     """
     num_bins = max(2, int(math.ceil(math.log2(len(data)) + 1)))
     return num_bins
@@ -57,7 +58,7 @@ def get_num_bins(data):
 def discretize_continuous_values(df):
     """
     Processes each column of the dataframe. For continuous columns
-    (int, float), it determines the number of bins and discretizes
+    (int64, float64), it determines the number of bins and discretizes
     the values. If the number of unique values is less than or equal to the
     calculated number of bins, it uses those unique values as bin edges.
     Otherwise, it calculates bin edges based on the normal distribution of the data.
@@ -66,9 +67,6 @@ def discretize_continuous_values(df):
     :return: Pandas dataframe with properly discretized continuous values
     """
     for column in df.columns:
-        # unsure if I need to specify bit or if i can just say 'int' and 'float'
-        # https://numpy.org/doc/stable/reference/arrays.dtypes.html
-        # do more research
         if df[column].dtype == 'int64' or df[column].dtype == 'float64':
             n_bins = get_num_bins(df[column])
             unique_values = df[column].unique()
@@ -102,8 +100,6 @@ def create_noise(df):
     :return:  Pandas dataframe with added noise in 10% of features
     """
     num_of_features = len(df.columns)
-    # could use either math.ceil(.1*num_of_features) here as well, but then we could get >10% noise introduction
-    # kinda our call for implementation
     number_of_noise_features = max(1, math.floor(.1 * num_of_features))
 
     noise_features = np.random.choice(df.columns, number_of_noise_features, replace=False)
