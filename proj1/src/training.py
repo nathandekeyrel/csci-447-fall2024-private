@@ -3,9 +3,6 @@ import numpy as np
 
 class NaiveBayes:
     def __init__(self):
-        """
-
-        """
         self.classes = None
         self.class_probabilities = {}  # --> Q(C = c_i)
         self.feature_probabilities = {}  # --> F(A_i = a_k, C = c_i)
@@ -30,11 +27,6 @@ class NaiveBayes:
         return self
 
     def predict(self, X):
-        """
-        :param X: input
-        :param X:
-        :return:
-        """
         prediction = np.array([self._predict_single(x) for x in X])
         return prediction
 
