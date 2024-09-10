@@ -1,14 +1,13 @@
 import pandas as pd
 import numpy as np
 import math
-from scipy import stats
 
 
 def preprocess_data(filepath):
     """
     Preprocess the dataset from a given filepath in main
 
-    This function performs the following:
+    This function performs the following steps:
     1. Read the csv fie
     2. Replaces '?' with NaN in every dataset except 'house-votes-84'
         NOTE: house-votes-84 '?' value does not represent missing values
@@ -59,8 +58,8 @@ def discretize_continuous_values(df):
 
 def create_noise(df):
     """
-    This function selects no more than 10% of the features randomly
-    and shuffles their values, introducing noise into the dataset.
+    Selects no more than 10% of the features randomly and
+    shuffles their values, introducing noise into the dataset.
 
     :param df: Pandas dataframe post-processing
     :return:  Pandas dataframe with added noise in 10% of features
