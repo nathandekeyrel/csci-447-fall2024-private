@@ -5,6 +5,22 @@ from evaluating import zero_one_loss, calculate_precision, calculate_recall, con
 
 
 def create_folds(X, y, n_splits=10, shuffle=True, random_state=42):
+    """
+    Create k-fold cross-validation splits of the data.
+
+    :param X: numpy.ndarray, shape (n_samples, n_features)
+        The input samples.
+    :param y: numpy.ndarray, shape (n_samples,)
+        The target values.
+    :param n_splits: int, default=10
+        Number of folds
+    :param shuffle: boolean, default=True
+        Whether to shuffle the data before splitting into batches.
+    :param random_state: int, default=42
+        Random seed for reproducibility.
+    :return: list of tuples
+        Each tuple contains (X_train, X_test, y_train, y_test) for a fold.
+    """
     kf = KFold(n_splits=n_splits, shuffle=shuffle, random_state=random_state)
     folds = []
 
@@ -17,6 +33,24 @@ def create_folds(X, y, n_splits=10, shuffle=True, random_state=42):
 
 
 def train_and_evaluate(X, y):
+    """
+    Train and evaluate the Naive Bayes model using k-fold cross-validation.
+
+    This function performs the following steps:
+    1. Create k-fold splits of the data
+    2. For each fold:
+       - Train a Naive Bayes model
+       - Make predictions on the test set
+       - Calculate performance metrics
+    3. Return the results for all folds
+
+    :param X: numpy.ndarray, shape (n_samples, n_features)
+        The input samples.
+    :param y: numpy.ndarray, shape (n_samples,)
+        The target values.
+    :return: list of dictionaries
+        Each containing results for one fold
+    """
     folds = create_folds(X, y)
     results = []
 
@@ -40,12 +74,24 @@ def train_and_evaluate(X, y):
         }
         results.append(fold_results)
 
-    print('')  # formatting
-
     return results
 
 
 def summarize_results(results):
+    """
+    Summarize and print the results from k-fold cross-validation.
+
+    This function calculates and prints:
+    - Average 0/1 Loss across all folds
+    - Average Precision across all folds
+    - Average Recall across all folds
+    - Confusion Matrix for each fold
+
+    :param results: list of dictionaries
+        The results from train_and_evaluate function.
+    :return: tuple (float, float, float)
+        A tuple containing (avg_loss, avg_precision, avg_recall).
+    """
     avg_loss = np.mean([r["0/1 Loss"] for r in results])
     avg_precision = np.mean([np.mean(r["Precision"]) for r in results])
     avg_recall = np.mean([np.mean(r["Recall"]) for r in results])
@@ -59,9 +105,8 @@ def summarize_results(results):
     for r in results:
         print(f"\nFold {r['Fold']}:")
         cm = r["Confusion Matrix"]
-        if cm is not None and cm.size > 0:
-            print(cm)
-        else:
-            print("Confusion matrix not available for this fold.")
+        print(cm)
+
+    print("-" * 50 + "\n")
 
     return avg_loss, avg_precision, avg_recall

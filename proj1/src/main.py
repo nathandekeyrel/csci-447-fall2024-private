@@ -20,7 +20,7 @@ def main():
     results = {}
 
     # train and eval cancer original
-    print("Cancer Dataset (original): ")
+    print("\nCancer Dataset (original): ")
     X_cancer, y_cancer = cancer_data_original.iloc[:, 1:].values, cancer_data_original.iloc[:, 0].values
     results['Cancer_original'] = train_and_evaluate(X_cancer, y_cancer)
     print("Cancer Original Results:")
