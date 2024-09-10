@@ -43,51 +43,17 @@ def remove_missing_values(df):
     return df
 
 
-def get_num_bins(data):
-    """
-    Adaptive binning strategy for continuous variables,
-    based on Sturge's rule.
-
-    :param data: Given a column of a pandas dataframe
-    :return: Number of bins
-    """
-    num_bins = max(2, int(math.ceil(math.log2(len(data)) + 1)))
-    return num_bins
-
-
 def discretize_continuous_values(df):
     """
     Processes each column of the dataframe. For continuous columns
-    (int64, float64), it determines the number of bins and discretizes
-    the values. If the number of unique values is less than or equal to the
-    calculated number of bins, it uses those unique values as bin edges.
-    Otherwise, it calculates bin edges based on the normal distribution of the data.
+    (int64, float64), split into quartiles.
 
     :param df: Pandas dataframe with no missing values
     :return: Pandas dataframe with properly discretized continuous values
     """
     for column in df.columns:
-        if df[column].dtype == 'int64' or df[column].dtype == 'float64':
-            n_bins = get_num_bins(df[column])
-            unique_values = df[column].unique()
-
-            if len(unique_values) <= n_bins:
-                bins = sorted(unique_values)
-            else:
-                mean = df[column].mean()
-                std = df[column].std()
-
-                bins_edges = stats.norm.ppf(np.linspace(0, 1, n_bins + 1), loc=mean, scale=std)
-                bins_edges = np.clip(bins_edges, df[column].min(), df[column].max())
-
-                bins = sorted(set(bins_edges))
-
-            # issue with bin edges not being unique in some cases
-            if len(bins) > 1:
-                df[column] = pd.qcut(df[column], q=len(bins) - 1, labels=False, duplicates='drop')
-            else:
-                df[column] = 0
-
+        if df[column].dtype in ['int64', 'float64']:
+            df[column] = pd.qcut(df[column], q=4, labels=False, duplicates='drop')
     return df
 
 

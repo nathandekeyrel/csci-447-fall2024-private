@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.model_selection import KFold
 from training import NaiveBayes
-from evaluating import zero_one_loss, calculate_precision, calculate_recall
+from evaluating import zero_one_loss, calculate_precision, calculate_recall, confusion_matrix
 
 
 def create_folds(X, y, n_splits=10, shuffle=True, random_state=42):
@@ -26,6 +26,7 @@ def train_and_evaluate(X, y):
 
         y_pred = model.predict(X_test)
 
+        cm = confusion_matrix(y_test, y_pred)
         loss = zero_one_loss(y_test, y_pred)
         precision = calculate_precision(y_test, y_pred)
         recall = calculate_recall(y_test, y_pred)
@@ -33,14 +34,13 @@ def train_and_evaluate(X, y):
         fold_results = {
             "Fold": fold,
             "0/1 Loss": loss,
+            "Confusion Matrix": cm,
             "Precision": precision,
             "Recall": recall
         }
         results.append(fold_results)
 
-        print(f"Fold {fold} completed")
-
-    print('') # formatting
+    print('')  # formatting
 
     return results
 
@@ -54,5 +54,14 @@ def summarize_results(results):
     print(f"Average 0/1 Loss: {avg_loss:.4f}")
     print(f"Average Precision: {avg_precision:.4f}")
     print(f"Average Recall: {avg_recall:.4f}")
+
+    print("\nConfusion Matrices:")
+    for r in results:
+        print(f"\nFold {r['Fold']}:")
+        cm = r["Confusion Matrix"]
+        if cm is not None and cm.size > 0:
+            print(cm)
+        else:
+            print("Confusion matrix not available for this fold.")
 
     return avg_loss, avg_precision, avg_recall
