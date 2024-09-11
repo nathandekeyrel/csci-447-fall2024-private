@@ -14,7 +14,7 @@ def evaluate_datasets(datasets):
     return results
 
 
-def create_performace_boxplots(results):
+def create_performance_plots(results):
     datasets = ['Cancer', 'Glass', 'Votes', 'Iris', 'Soybean']
     metrics = ['0/1 Loss', 'Precision', 'Recall']
 
