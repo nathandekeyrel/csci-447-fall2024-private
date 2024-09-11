@@ -14,7 +14,7 @@ def preprocess_data(filepath):
     elif 'soybean-small' in filepath:
         return preprocess_soybean(filepath)
     else:
-        raise ValueError(f"Bad dataset: {filepath}")
+        print(f"Bad dataset: {filepath}")
 
 
 def preprocess_cancer(filepath):
