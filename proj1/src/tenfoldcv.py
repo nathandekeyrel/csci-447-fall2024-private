@@ -107,6 +107,6 @@ def summarize_results(results):
         cm = r["Confusion Matrix"]
         print(cm)"""
 
-    print("-" * 50 + "\n")
+    print("-" * 50)
 
     return avg_loss, avg_precision, avg_recall

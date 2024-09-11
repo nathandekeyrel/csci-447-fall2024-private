@@ -54,7 +54,7 @@ def preprocess_cancer(filepath):
 
 def preprocess_glass(filepath):
     """
-    Preprocess the breast glass dataset.
+    Preprocess the glass dataset.
 
     :param filepath: Path to the glass dataset file
     :return: Features (X) and target (y) as numpy arrays
@@ -87,9 +87,9 @@ def preprocess_glass(filepath):
 
 def preprocess_votes(filepath):
     """
-    Preprocess the votes cancer dataset.
+    Preprocess the votes dataset.
 
-    :param filepath: Path to the cancer dataset file
+    :param filepath: Path to the votes dataset file
     :return: Features (X) and target (y) as numpy arrays
     """
     df = pd.read_csv(filepath, header=None)
@@ -115,9 +115,9 @@ def preprocess_votes(filepath):
 
 def preprocess_iris(filepath):
     """
-    Preprocess the iris cancer dataset.
+    Preprocess the iris dataset.
 
-    :param filepath: Path to the cancer dataset file
+    :param filepath: Path to the iris dataset file
     :return: Features (X) and target (y) as numpy arrays
     """
     df = pd.read_csv(filepath, header=None)
@@ -144,9 +144,9 @@ def preprocess_iris(filepath):
 
 def preprocess_soybean(filepath):
     """
-    Preprocess the soybean cancer dataset.
+    Preprocess the soybean dataset.
 
-    :param filepath: Path to the cancer dataset file
+    :param filepath: Path to the soybean dataset file
     :return: Features (X) and target (y) as numpy arrays
     """
     df = pd.read_csv(filepath, header=None)
