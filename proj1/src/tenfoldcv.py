@@ -101,11 +101,11 @@ def summarize_results(results):
     print(f"Average Precision: {avg_precision:.4f}")
     print(f"Average Recall: {avg_recall:.4f}")
 
-    print("\nConfusion Matrices:")
+    """print("\nConfusion Matrices:")
     for r in results:
         print(f"\nFold {r['Fold']}:")
         cm = r["Confusion Matrix"]
-        print(cm)
+        print(cm)"""
 
     print("-" * 50 + "\n")
 
