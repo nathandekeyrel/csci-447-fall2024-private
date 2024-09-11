@@ -36,7 +36,6 @@ def create_performace_boxplots(results):
         plt.xticks(rotation=45)
 
         plt.tight_layout()
-        plt.savefig(f'{metric.lower().replace("/", "_")}_boxplot.png', dpi=300, bbox_inches='tight')
         plt.show()
         plt.close()
 
