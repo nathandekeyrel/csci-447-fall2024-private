@@ -65,7 +65,7 @@ def main():
 
     results = evaluate_datasets(datasets)
 
-    create_performace_boxplots(results)
+    create_performance_plots(results)
 
 
 if __name__ == '__main__':
