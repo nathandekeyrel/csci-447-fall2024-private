@@ -1,8 +1,16 @@
+import math
+import random
 import numpy as np
 import pandas as pd
 
 
 def preprocess_data(filepath):
+    """
+    Preprocess a dataset based on its filename.
+
+    :param filepath: Path to the dataset file
+    :return: Preprocessed dataset
+    """
     if 'breast-cancer-wisconsin' in filepath:
         return preprocess_cancer(filepath)
     elif 'glass' in filepath:
@@ -18,6 +26,12 @@ def preprocess_data(filepath):
 
 
 def preprocess_cancer(filepath):
+    """
+    Preprocess the breast cancer dataset.
+
+    :param filepath: Path to the cancer dataset file
+    :return: Features (X) and target (y) as numpy arrays
+    """
     df = pd.read_csv(filepath, header=None, na_values='?')
 
     columns = ['Id', 'Clump Thickness', 'Uniformity of Cell Size', 'Uniformity of Cell Shape',
@@ -41,6 +55,12 @@ def preprocess_cancer(filepath):
 
 
 def preprocess_glass(filepath):
+    """
+    Preprocess the breast glass dataset.
+
+    :param filepath: Path to the glass dataset file
+    :return: Features (X) and target (y) as numpy arrays
+    """
     df = pd.read_csv(filepath, header=None, na_values='?')
 
     columns = ['Id', 'RI', 'Na', 'Mg', 'Al', 'Si', 'K', 'Ca', 'Ba', 'Fe', 'Type']
@@ -68,6 +88,12 @@ def preprocess_glass(filepath):
 
 
 def preprocess_votes(filepath):
+    """
+    Preprocess the votes cancer dataset.
+
+    :param filepath: Path to the cancer dataset file
+    :return: Features (X) and target (y) as numpy arrays
+    """
     df = pd.read_csv(filepath, header=None)
 
     columns = ['Class Name', 'handicapped-infants', 'water-project-cost-sharing',
@@ -90,6 +116,12 @@ def preprocess_votes(filepath):
 
 
 def preprocess_iris(filepath):
+    """
+    Preprocess the iris cancer dataset.
+
+    :param filepath: Path to the cancer dataset file
+    :return: Features (X) and target (y) as numpy arrays
+    """
     df = pd.read_csv(filepath, header=None)
 
     columns = ['Sepal Width', 'Sepal Length', 'Petal Length', 'Petal Width', 'Class']
@@ -113,6 +145,12 @@ def preprocess_iris(filepath):
 
 
 def preprocess_soybean(filepath):
+    """
+    Preprocess the soybean cancer dataset.
+
+    :param filepath: Path to the cancer dataset file
+    :return: Features (X) and target (y) as numpy arrays
+    """
     df = pd.read_csv(filepath, header=None)
 
     columns = ['Date', 'Plant Stand', 'Precip', 'Temp', 'Hail', 'Crop-hist', 'Area Damaged', 'Severity',
