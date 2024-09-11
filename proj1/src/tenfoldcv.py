@@ -4,7 +4,7 @@ from training import NaiveBayes
 from evaluating import zero_one_loss, calculate_precision, calculate_recall, confusion_matrix
 
 
-def create_folds(X, y, n_splits=10, shuffle=True, random_state=42):
+def create_folds(X, y, n_splits=10, shuffle=True, random_state=44):  # test stratified k-fold further
     """
     Create k-fold cross-validation splits of the data.
 
@@ -16,7 +16,7 @@ def create_folds(X, y, n_splits=10, shuffle=True, random_state=42):
         Number of folds
     :param shuffle: boolean, default=True
         Whether to shuffle the data before splitting into batches.
-    :param random_state: int, default=42
+    :param random_state: int
         Random seed for reproducibility.
     :return: list of tuples
         Each tuple contains (X_train, X_test, y_train, y_test) for a fold.
@@ -34,10 +34,10 @@ def create_folds(X, y, n_splits=10, shuffle=True, random_state=42):
 
 def train_and_evaluate(X, y):
     """
-    Train and evaluate the Naive Bayes model using k-fold cross-validation.
+    Train and evaluate the Naive Bayes model using 10-fold cross-validation.
 
     This function performs the following steps:
-    1. Create k-fold splits of the data
+    1. Create 10-fold splits of the data
     2. For each fold:
        - Train a Naive Bayes model
        - Make predictions on the test set
