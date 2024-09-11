@@ -14,14 +14,12 @@ def preprocess_data(filepath):
     elif 'soybean-small' in filepath:
         return preprocess_soybean(filepath)
     else:
-        raise ValueError(f"Unknown dataset: {filepath}")
+        raise ValueError(f"Bad dataset: {filepath}")
 
 
 def preprocess_cancer(filepath):
-    # Read the data
     df = pd.read_csv(filepath, header=None, na_values='?')
 
-    # Assign column names
     columns = ['Id', 'Clump Thickness', 'Uniformity of Cell Size', 'Uniformity of Cell Shape',
                'Marginal Adhesion', 'Single Epithelial Cell Size', 'Bare Nuclei',
                'Bland Chromatin', 'Normal Nucleoli', 'Mitoses', 'Class']
@@ -68,6 +66,7 @@ def preprocess_glass(filepath):
 
     return X, y
 
+
 def preprocess_votes(filepath):
     df = pd.read_csv(filepath, header=None)
 
@@ -80,7 +79,6 @@ def preprocess_votes(filepath):
                'duty-free-exports', 'export-administration-act-south-africa']
     df.columns = columns
 
-    # Convert 'y' to 1, 'n' to 0, and '?' to NaN
     df = df.replace({'y': 1, 'n': 0, '?': 2})
 
     df['Class Name'] = df['Class Name'].map({'democrat': 0, 'republican': 1})
