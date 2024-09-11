@@ -17,7 +17,6 @@ def zero_one_loss(y_true, y_pred):
     return metric
 
 
-# calc the confusion matrix
 def confusion_matrix(y_true, y_pred):
     """
     Calculate confusion matrix to evaluate the accuracy of a classification.
