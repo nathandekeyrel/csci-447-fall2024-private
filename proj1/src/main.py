@@ -121,9 +121,9 @@ def main():
     results_original = evaluate_datasets(datasets, is_noisy=False)
     results_noisy = evaluate_datasets(datasets, is_noisy=True)
 
-    # creates new dictionary that contains all the keys in original and noisy
-    # uses dictionary unpacking
     """
+    creates new dictionary that contains all the keys 
+    in original and noisy uses dictionary unpacking
     references:
         - https://discuss.python.org/t/syntax-for-dictionnary-unpacking-to-variables/18718
         - https://medium.com/@ashishkush1122/dictionary-unpacking-in-python-544f957e035a
