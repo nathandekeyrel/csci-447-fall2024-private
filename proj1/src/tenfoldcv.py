@@ -4,7 +4,7 @@ from training import NaiveBayes
 from evaluating import zero_one_loss, calculate_precision, calculate_recall, confusion_matrix
 
 
-def create_folds(X, y, n_splits=10, shuffle=True, random_state=44):  # test stratified k-fold further
+def create_folds(X, y, n_splits=10, shuffle=True, random_state=44):
     """
     Create k-fold cross-validation splits of the data.
 
@@ -24,7 +24,7 @@ def create_folds(X, y, n_splits=10, shuffle=True, random_state=44):  # test stra
     kf = KFold(n_splits=n_splits, shuffle=shuffle, random_state=random_state)
     folds = []
 
-    for train_index, test_index in kf.split(X):
+    for train_index, test_index in kf.split(X, y):
         X_train, X_test = X[train_index], X[test_index]
         y_train, y_test = y[train_index], y[test_index]
         folds.append((X_train, X_test, y_train, y_test))
