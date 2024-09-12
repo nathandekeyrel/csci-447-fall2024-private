@@ -42,9 +42,14 @@ def preprocess_cancer(filepath):
     df = df.drop('Id', axis=1)
 
     for col in df.columns[:-1]:
-        df[col] = pd.cut(df[col], bins=3, labels=[0, 1, 2])
+        df[col] = pd.qcut(df[col], q=5, labels=False, duplicates='drop')
 
-    df['Class'] = df['Class'].map({2: 0, 4: 1})
+    class_mapping = {
+        2: 0,
+        4: 1
+    }
+
+    df['Class'] = df['Class'].map(class_mapping)
 
     X = df.drop('Class', axis=1).values
     y = df['Class'].values
@@ -70,17 +75,10 @@ def preprocess_glass(filepath):
     y = df['Type']
 
     for column in X.columns:
-        try:
-            X[column] = pd.qcut(X[column], q=4, labels=False, duplicates='drop')
-        except ValueError:
-            X[column] = pd.cut(X[column], bins=4, labels=False, include_lowest=True)
+        X[column] = pd.qcut(X[column], q=5, labels=False, duplicates='drop')
 
     X = X.values
     y = y.values
-
-    unique_classes = np.unique(y)
-    class_map = {c: i for i, c in enumerate(unique_classes)}
-    y = np.array([class_map[c] for c in y])
 
     return X, y
 
@@ -105,7 +103,12 @@ def preprocess_votes(filepath):
 
     df = df.replace({'y': 1, 'n': 0, '?': 2})
 
-    df['Class Name'] = df['Class Name'].map({'democrat': 0, 'republican': 1})
+    class_mapping = {
+        'democrat': 0,
+        'republican': 1
+    }
+
+    df['Class Name'] = df['Class Name'].map(class_mapping)
 
     X = df.drop('Class Name', axis=1).values
     y = df['Class Name'].values
@@ -126,7 +129,7 @@ def preprocess_iris(filepath):
     df.columns = columns
 
     for column in df.columns[:-1]:
-        df[column] = pd.qcut(df[column], q=4, labels=False, duplicates='drop')
+        df[column] = pd.qcut(df[column], q=5, labels=False, duplicates='drop')
 
     class_mapping = {
         'Iris-setosa': 0,
@@ -159,7 +162,14 @@ def preprocess_soybean(filepath):
                'Shriveling', 'Roots', 'Class']
     df.columns = columns
 
-    df['Class'] = df['Class'].map({'D1': 1, 'D2': 2, 'D3': 3, 'D4': 4})
+    class_mapping = {
+        'D1': 0,
+        'D2': 1,
+        'D3': 2,
+        'D4': 3
+    }
+
+    df['Class'] = df['Class'].map(class_mapping)
 
     X = df.drop('Class', axis=1).values
     y = df['Class'].values
