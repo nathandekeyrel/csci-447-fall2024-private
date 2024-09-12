@@ -72,9 +72,9 @@ def create_performance_plots(results):
 
         positions = range(1, len(datasets) * 2 + 1, 2)
         box_original = plt.boxplot(data_original, positions=positions,
-                                   labels=[f"{d}\nOriginal" for d in datasets], patch_artist=True)
+                                   labels=[f"{d}" for d in datasets], patch_artist=True)
         box_noisy = plt.boxplot(data_noisy, positions=[p + 1 for p in positions],
-                                labels=[f"{d}\nNoisy" for d in datasets], patch_artist=True)
+                                labels=[f"{d}" for d in datasets], patch_artist=True)
 
         for box in box_original['boxes']:
             box.set_facecolor('lightblue')
@@ -86,7 +86,7 @@ def create_performance_plots(results):
         plt.ylabel(metric)
         plt.xticks(rotation='vertical')
 
-        plt.legend([box_original["boxes"][0], box_noisy["boxes"][0]], ['Original', 'Noisy'], loc='upper right')
+        plt.legend([box_original["boxes"][0], box_noisy["boxes"][0]], ['Original', 'Noisy'], loc='best')
 
         plt.tight_layout()
         plt.show()
@@ -123,7 +123,7 @@ def main():
 
     """
     creates new dictionary that contains all the keys 
-    in original and noisy uses dictionary unpacking
+    in original and noisy using dictionary unpacking
     references:
         - https://discuss.python.org/t/syntax-for-dictionnary-unpacking-to-variables/18718
         - https://medium.com/@ashishkush1122/dictionary-unpacking-in-python-544f957e035a

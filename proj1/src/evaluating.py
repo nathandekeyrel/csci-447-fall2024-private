@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn import metrics
+from sklearn.metrics import precision_score, recall_score
 
 
 def zero_one_loss(y_true, y_pred):
@@ -49,7 +49,7 @@ def calculate_precision(y_true, y_pred):
         Precision for each class. If a class is not present in y_true or y_pred,
         the corresponding precision will be set to 0.
     """
-    precision = metrics.precision_score(y_true, y_pred, average=None, zero_division=0)
+    precision = precision_score(y_true, y_pred, average=None, zero_division=0)
     return precision
 
 
@@ -65,5 +65,5 @@ def calculate_recall(y_true, y_pred):
         Recall for each class. If a class is not present in y_true,
         the corresponding recall will be set to 0.
     """
-    recall = metrics.recall_score(y_true, y_pred, average=None, zero_division=0)
+    recall = recall_score(y_true, y_pred, average=None, zero_division=0)
     return recall
