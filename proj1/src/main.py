@@ -13,11 +13,11 @@ def create_noise(X):
     :param X: Input data array
     :return: Copy of input data with noise added
     """
+    X_noisy = X.copy()
     num_features = X.shape[1]
     num_of_noise_features = max(1, math.floor(num_features * 0.1))
     noise_features = random.sample(range(num_features), num_of_noise_features)
 
-    X_noisy = X.copy()
     for feature in noise_features:
         np.random.shuffle(X_noisy[:, feature])
 
@@ -28,12 +28,12 @@ def evaluate_datasets(datasets, is_noisy=False):
     """
     Evaluate multiple datasets, optionally adding noise.
 
-    :param datasets: Dictionary of datasets (name: (X, y))
+    :param datasets: Dictionary of datasets (name: (X, y, num_classes))
     :param is_noisy: If True, add noise to datasets before evaluation
     :return: Dictionary of evaluation results for each dataset
     """
     results = {}
-    for name, (X, y) in datasets.items():
+    for name, (X, y, num_classes) in datasets.items():
         if is_noisy:
             X = create_noise(X)
             print(f"\n{name} Dataset (noisy): ")
@@ -42,9 +42,10 @@ def evaluate_datasets(datasets, is_noisy=False):
             print(f"\n{name} Dataset (original): ")
             key = f'{name}_original'
 
-        results[key] = train_and_evaluate(X, y)
+        fold_results, summed_cm = train_and_evaluate(X, y, num_classes)
+        results[key] = (fold_results, summed_cm)
         print(f"{name} {'Noisy' if is_noisy else 'Original'} Results:")
-        summarize_results(results[key])
+        summarize_results(fold_results, summed_cm)
     return results
 
 
@@ -63,12 +64,15 @@ def create_performance_plots(results):
         data_noisy = []
 
         for dataset in datasets:
+            original_results = results[f'{dataset}_original'][0]
+            noisy_results = results[f'{dataset}_noisy'][0]
+
             if metric == '0/1 Loss':
-                data_original.append([r[metric] for r in results[f'{dataset}_original']])
-                data_noisy.append([r[metric] for r in results[f'{dataset}_noisy']])
+                data_original.append([r[metric] for r in original_results])
+                data_noisy.append([r[metric] for r in noisy_results])
             else:
-                data_original.append([np.mean(r[metric]) for r in results[f'{dataset}_original']])
-                data_noisy.append([np.mean(r[metric]) for r in results[f'{dataset}_noisy']])
+                data_original.append([np.mean(r[metric]) for r in original_results])
+                data_noisy.append([np.mean(r[metric]) for r in noisy_results])
 
         positions = range(1, len(datasets) * 2 + 1, 2)
         box_original = plt.boxplot(data_original, positions=positions,
@@ -101,20 +105,20 @@ def main():
     iris_filepath = '../data/iris.data'
     soybeans_filepath = '../data/soybean-small.data'
 
-    # preprocessed split of features and target
-    X_cancer, y_cancer = preprocess_data(cancer_filepath)
-    X_glass, y_glass = preprocess_data(glass_filepath)
-    X_votes, y_votes = preprocess_data(votes_filepath)
-    X_iris, y_iris = preprocess_data(iris_filepath)
-    X_soybeans, y_soybeans = preprocess_data(soybeans_filepath)
+    # preprocessed split of features, target, and number of unique classes in target
+    X_cancer, y_cancer, num_classes_cancer = preprocess_data(cancer_filepath)
+    X_glass, y_glass, num_classes_glass = preprocess_data(glass_filepath)
+    X_votes, y_votes, num_classes_votes = preprocess_data(votes_filepath)
+    X_iris, y_iris, num_classes_iris = preprocess_data(iris_filepath)
+    X_soybeans, y_soybeans, num_classes_soybean = preprocess_data(soybeans_filepath)
 
     # dictionary of datasets
     datasets = {
-        'Cancer': (X_cancer, y_cancer),
-        'Glass': (X_glass, y_glass),
-        'Votes': (X_votes, y_votes),
-        'Iris': (X_iris, y_iris),
-        'Soybean': (X_soybeans, y_soybeans)
+        'Cancer': (X_cancer, y_cancer, num_classes_cancer),
+        'Glass': (X_glass, y_glass, num_classes_glass),
+        'Votes': (X_votes, y_votes, num_classes_votes),
+        'Iris': (X_iris, y_iris, num_classes_iris),
+        'Soybean': (X_soybeans, y_soybeans, num_classes_soybean)
     }
 
     # eval original and noisy

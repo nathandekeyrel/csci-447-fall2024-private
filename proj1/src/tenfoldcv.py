@@ -32,7 +32,7 @@ def create_folds(X, y, n_splits=10, shuffle=True, random_state=44):
     return folds
 
 
-def train_and_evaluate(X, y):
+def train_and_evaluate(X, y, num_classes):
     """
     Train and evaluate the Naive Bayes model using 10-fold cross-validation.
 
@@ -44,6 +44,7 @@ def train_and_evaluate(X, y):
        - Calculate performance metrics
     3. Return the results for all folds
 
+    :param num_classes: number of unique classes in the target column
     :param X: numpy.ndarray, shape (n_samples, n_features)
         The input samples.
     :param y: numpy.ndarray, shape (n_samples,)
@@ -53,6 +54,7 @@ def train_and_evaluate(X, y):
     """
     folds = create_folds(X, y)
     results = []
+    summed_cm = np.zeros((num_classes, num_classes), dtype=int)
 
     for fold, (X_train, X_test, y_train, y_test) in enumerate(folds, 1):
         model = NaiveBayes()
@@ -60,7 +62,8 @@ def train_and_evaluate(X, y):
 
         y_pred = model.predict(X_test)
 
-        cm = confusion_matrix(y_test, y_pred)
+        cm = confusion_matrix(y_test, y_pred, num_classes)
+        summed_cm += cm
         loss = zero_one_loss(y_test, y_pred)
         precision = calculate_precision(y_test, y_pred)
         recall = calculate_recall(y_test, y_pred)
@@ -74,10 +77,10 @@ def train_and_evaluate(X, y):
         }
         results.append(fold_results)
 
-    return results
+    return results, summed_cm
 
 
-def summarize_results(results):
+def summarize_results(results, summed_cm):
     """
     Summarize and print the results from k-fold cross-validation.
 
@@ -87,6 +90,7 @@ def summarize_results(results):
     - Average Recall across all folds
     - Confusion Matrix for each fold
 
+    :param summed_cm:
     :param results: list of dictionaries
         The results from train_and_evaluate function.
     :return: tuple (float, float, float)
@@ -101,11 +105,8 @@ def summarize_results(results):
     print(f"Average Precision: {avg_precision:.4f}")
     print(f"Average Recall: {avg_recall:.4f}")
 
-    """print("\nConfusion Matrices:")
-    for r in results:
-        print(f"\nFold {r['Fold']}:")
-        cm = r["Confusion Matrix"]
-        print(cm)"""
+    print("\nSummed Confusion Matrix:")
+    print(summed_cm)
 
     print("-" * 50)
 
