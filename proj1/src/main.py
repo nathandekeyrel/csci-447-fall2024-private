@@ -1,6 +1,7 @@
 import numpy as np
 import random
 import math
+import os
 import matplotlib.pyplot as plt
 from preprocess import preprocess_data
 from tenfoldcv import train_and_evaluate, summarize_results
@@ -94,6 +95,8 @@ def create_performance_plots(results):
 
         plt.tight_layout()
         plt.show()
+        filename = os.path.join('../images', f'{metric.lower().replace("/", "_")}_boxplot.png')
+        plt.savefig(filename, dpi=300, bbox_inches='tight')
         plt.close()
 
 
