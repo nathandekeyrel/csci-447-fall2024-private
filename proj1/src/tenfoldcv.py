@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.model_selection import KFold
 from training import NaiveBayes
-from evaluating import zero_one_loss, calculate_precision, calculate_recall, confusion_matrix
+from evaluating import zero_one_loss, calculate_precision, calculate_recall, confusion_matrix, calculate_f_score
 
 
 def create_folds(X, y, n_splits=10, shuffle=True, random_state=44):
@@ -67,13 +67,15 @@ def train_and_evaluate(X, y, num_classes):
         loss = zero_one_loss(y_test, y_pred)
         precision = calculate_precision(y_test, y_pred)
         recall = calculate_recall(y_test, y_pred)
+        f1_score = calculate_f_score(y_test, y_pred)
 
         fold_results = {
             "Fold": fold,
             "0/1 Loss": loss,
             "Confusion Matrix": cm,
             "Precision": precision,
-            "Recall": recall
+            "Recall": recall,
+            "F1 Score": f1_score
         }
         results.append(fold_results)
 

@@ -57,7 +57,7 @@ def create_performance_plots(results):
     :param results: Dictionary containing evaluation results for datasets
     """
     datasets = ['Cancer', 'Glass', 'Votes', 'Iris', 'Soybean']
-    metrics = ['0/1 Loss', 'Precision', 'Recall']
+    metrics = ['0/1 Loss', 'Precision', 'Recall', 'F1 Score']
 
     for metric in metrics:
         plt.figure(figsize=(12, 6))
@@ -89,14 +89,15 @@ def create_performance_plots(results):
         plt.title(f'{metric} Across Datasets (Original vs Noisy)')
         plt.xlabel('Datasets')
         plt.ylabel(metric)
-        plt.xticks(rotation='vertical')
 
         plt.legend([box_original["boxes"][0], box_noisy["boxes"][0]], ['Original', 'Noisy'], loc='best')
 
         plt.tight_layout()
-        plt.show()
+
         filename = os.path.join('../images', f'{metric.lower().replace("/", "_")}_boxplot.png')
         plt.savefig(filename, dpi=300, bbox_inches='tight')
+
+        plt.show()
         plt.close()
 
 
