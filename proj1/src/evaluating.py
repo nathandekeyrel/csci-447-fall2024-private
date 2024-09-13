@@ -17,7 +17,7 @@ def zero_one_loss(y_true, y_pred):
     return metric
 
 
-def confusion_matrix(y_true, y_pred, num_classes):
+def confusion_matrix(y_true, y_pred, num_classes, class_names):
     """
     Calculate confusion matrix to evaluate the accuracy of a classification.
 
@@ -32,7 +32,7 @@ def confusion_matrix(y_true, y_pred, num_classes):
         number of samples with true label being i-th class and predicted
         label being j-th class.
     """
-    classes = np.unique(np.concatenate((y_true, y_pred)))
+    classes = np.unique(class_names)
     class_to_index = {cls: idx for idx, cls in enumerate(classes)}
     cm = np.zeros((num_classes, num_classes), dtype=int)
 

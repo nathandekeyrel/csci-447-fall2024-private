@@ -12,6 +12,8 @@ class NaiveBayes:
             feature_probs (dict): Conditional probabilities of features given each class.
         """
         self.classes = None
+        self.d = 0
+        self.num_per_class = {}
         self.class_probs = {}  # Q(C = c_i)
         self.feature_probs = {}  # F(A_j = a_k, C = c_i)
 
@@ -30,10 +32,12 @@ class NaiveBayes:
         self.classes = np.unique(y)
         N = len(y)
         d = X.shape[1]  # number of attributes
+        self.d = d
 
         # calc Q(C = c_i) for each class
         for c in self.classes:
-            self.class_probs[c] = np.sum(y == c) / N
+            self.num_per_class[c] = np.sum(y == c)
+            self.class_probs[c] = self.num_per_class[c] / N
 
         # calc F(A_j = a_k, C = c_i) for each class and attribute
         for c in self.classes:
@@ -78,7 +82,7 @@ class NaiveBayes:
                 if a_k in self.feature_probs[c][j]:
                     score += np.log(self.feature_probs[c][j][a_k])
                 else:
-                    score += np.log(1 / (len(self.feature_probs[c][j]) + 1))  # laplace smoothing
+                    score += np.log(1 / (self.d + self.num_per_class[c]))  # laplace smoothing
             class_scores[c] = score
 
         max_score = max(class_scores, key=class_scores.get)

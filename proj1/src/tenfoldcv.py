@@ -62,7 +62,7 @@ def train_and_evaluate(X, y, num_classes):
 
         y_pred = model.predict(X_test)
 
-        cm = confusion_matrix(y_test, y_pred, num_classes)
+        cm = confusion_matrix(y_test, y_pred, num_classes, model.classes)
         summed_cm += cm
         loss = zero_one_loss(y_test, y_pred)
         precision = calculate_precision(y_test, y_pred)

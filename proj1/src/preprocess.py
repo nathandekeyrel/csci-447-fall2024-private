@@ -155,7 +155,8 @@ def preprocess_iris(filepath):
 
 def preprocess_soybean(filepath):
     """
-    Preprocess the soybean dataset. Drop columns with only 0 values
+    Preprocess the soybean dataset. Drop columns with either
+     all 0-valued or all 1-valued. Dropped Date as well
 
     :param filepath: Path to the soybean dataset file
     :return: Features (X), target (y) as numpy arrays, number of unique classes in target
