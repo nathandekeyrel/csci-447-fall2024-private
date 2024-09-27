@@ -101,11 +101,13 @@ def summarize_results(results, summed_cm):
     avg_loss = np.mean([r["0/1 Loss"] for r in results])
     avg_precision = np.mean([np.mean(r["Precision"]) for r in results])
     avg_recall = np.mean([np.mean(r["Recall"]) for r in results])
+    f_score = np.mean([np.mean(r["F1 Score"]) for r in results])
 
     print("Overall Results:")
     print(f"Average 0/1 Loss: {avg_loss:.4f}")
     print(f"Average Precision: {avg_precision:.4f}")
     print(f"Average Recall: {avg_recall:.4f}")
+    print(f"F score: {f_score:.4f}")
 
     print("\nSummed Confusion Matrix:")
     print(summed_cm)
