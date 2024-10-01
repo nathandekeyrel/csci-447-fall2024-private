@@ -43,13 +43,13 @@ def distance(x1, x2):
   #if the lengths aren't equal, return a -1, we should replace this with thrwoing an error
   if not len(x1) == len(x2):
     return -1
-  #find the pythagorean distance between two vectors
+  #find the Euclidean distance between two vectors
   for i in range(len(x1) - 1):
     #first we will use a temporary variable to get the difference between the units at position i in the vector x1 and the vector x2
     d = x1[i] - x2[i]
     #then we add the square of that difference to the distance value
     distance += (d * d)
-  #after the squares of the differences are all added up, we get the square root of the final distance value to get the actual pythagorean distance
+  #after the squares of the differences are all added up, we get the square root of the final distance value to get the actual Euclidean distance
   distance = np.sqrt(distance)
   #then we return that ditance to close out the frame
   return distance
