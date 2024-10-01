@@ -49,11 +49,11 @@ def crossvalidation(D, t : tr.Classifier, k=10):
     #merge the remaining folds to be used for training
     fs = mergedata(fs)
     #train the classifier on the training data
-    classifier = t.classify(fs) #TODO fix this
+    t.train(fs) #TODO this is a placeholder for the trainer
     #We classify each vector x in the training fold tf
     for x in tf:
       #we access the confusion matrix position defined by the predicted class and the actual class for x and we increment the value in that position by 1
-      cm[t.classify(x)][x[-1]] += 1
+      cm[t.classify(x)][x[-1]] += 1 #TODO this is a placeholder for the trainer
     #when we are finished with the fold, we save the confusion matrix into our list of confusion matrices
     cml[i] = cm
   #return the list of confusion matrices that were produced with our classifier
