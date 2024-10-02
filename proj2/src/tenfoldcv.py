@@ -34,14 +34,14 @@ def kfold(D, k, debug = False):
   #We return the list of lists produced by the instructions in this function
   return Vss
 
-def crossvalidation(D, t : tr.Classifier, k=10):
+def crossvalidation(D, c, t : tr.Classifier, k=10):
   #first we initialize our confusion matrix list
   cml = [None] * k
   #o is our original list of folds
   o = kfold(D, k)
   for i in range(0, k):
     #initialize the confusion matrix for this fold
-    cm = [([0] * (len(D[0]) - 1)) for _ in range(len(D[0]) - 1)]
+    cm = [([0] * len(c)) for _ in range(len(c))]
     #copy the original list to prevent mutating the main list
     fs = copy.copy(o)
     #remove the ith fold from the list and keep it for testing
@@ -53,7 +53,7 @@ def crossvalidation(D, t : tr.Classifier, k=10):
     #We classify each vector x in the training fold tf
     for x in tf:
       #we access the confusion matrix position defined by the predicted class and the actual class for x and we increment the value in that position by 1
-      cm[t.classify(x)][x[-1]] += 1 #TODO this is a placeholder for the trainer
+      cm[t.classify(x)][x[-1]] += 1 #TODO this is a placeholder for the classifier
     #when we are finished with the fold, we save the confusion matrix into our list of confusion matrices
     cml[i] = cm
   #return the list of confusion matrices that were produced with our classifier

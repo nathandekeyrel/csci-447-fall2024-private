@@ -13,7 +13,7 @@ class KNNClassifier:
     #for each vector xt in D, measure the distance between x and xt
     for xt in self.D:
       #save the distance in a tuple named e with its associated class
-      e = (-distance(x, xt), xt[-1])
+      e = (-euclidianDistance(x, xt), xt[-1])
       #we used the heappushpop function since the documentation claims it is more efficient than using the two functions separately
       if len(l) >= 5:
         hq.heappushpop(l, e)
@@ -36,8 +36,8 @@ class KNNClassifier:
     #return the class of the first item in the list
     return v[0][0]
 
-#distance algorithm
-def distance(x1, x2):
+#euclidian distance algorithm
+def euclidianDistance(x1, x2):
   #initialize distance to zero, since we haven't measured anything yet
   distance = 0
   #if the lengths aren't equal, return a -1, we should replace this with thrwoing an error
