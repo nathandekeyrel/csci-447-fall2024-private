@@ -15,7 +15,7 @@ class KNNClassifier:
       #save the distance in a tuple named e with its associated class
       e = (-euclidianDistance(x, xt), xt[-1])
       #we used the heappushpop function since the documentation claims it is more efficient than using the two functions separately
-      if len(l) >= 5:
+      if len(l) >= k:
         hq.heappushpop(l, e)
       else:
         hq.heappush(l, e)
@@ -35,6 +35,27 @@ class KNNClassifier:
     v = sorted(v, key=lambda item: item[1], reverse=True)
     #return the class of the first item in the list
     return v[0][0]
+
+class KNNRegression:
+  #init with the data D
+  def __init__(self, D : list):
+    self.D = D
+  
+  #take feature vector x, and integer k
+  def predict(self, x, k):
+    #initialize the list we will use for our k nearest neighbors
+    l = []
+    #for each vector xt in D, measure the distance between x and xt
+    for xt in self.D:
+      #save the distance in a tuple named e with its associated class
+      e = (-euclidianDistance(x, xt), xt[-1])
+      #we used the heappushpop function since the documentation claims it is more efficient than using the two functions separately
+      if len(l) >= k:
+        hq.heappushpop(l, e)
+      else:
+        hq.heappush(l, e)
+    #get the average of the target values of the k nearest neighbors
+    return sum(e[1] for e in l) / k
 
 #euclidian distance algorithm
 def euclidianDistance(x1, x2):

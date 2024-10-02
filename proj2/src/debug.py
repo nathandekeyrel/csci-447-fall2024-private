@@ -1,27 +1,46 @@
 import knn as knn
+import editedKNN as eknn
 import random as r
 import time as t
+import tenfoldcv as kfxv
+import numpy as np
 
 r.seed(t.time())
-l : list[list]= []
-#generate list of twenty vectors with random x and y values, and the associated class
-for i in range(100):
+lc : list[list] = []
+lr : list[list] = []
+
+#generate list of n vectors with random x and y values, and the associated class
+n = 1000
+for i in range(n):
   x = r.random()
   y = r.random()
   #classify those items as group 0 if x > y, and group 1 if x <= y
   c = 0 if x > y else 1
-  l.append([x, y, c])
+  lc.append([x, y, c])
 
-#generate test set
-lt : list[list] = []
-for i in range(5):
-  x = r.random()
-  y = r.random()
-  c = 0 if x > y else 1
-  lt.append([x, y, c])
+n = 1000
+for i in range(n):
+  x = i
+  y = (r.random() * np.sqrt(n)) + i
+  lr.append([x, y])
 
-cl = knn.KNNClassifier(l)
-for x in lt:
-  cc = cl.classify(x, 5)
-  c = x[-1]
-  print(str(cc) + " " + str(c))
+lr = kfxv.kfold(lr)
+trr = lr.pop(0)
+lr = kfxv.mergedata(lr)
+
+regression = knn.KNNRegression(lr)
+regression.predict()
+
+
+
+
+
+
+
+'''
+lc = kfxv.kfold(lc, 10)
+trc = lc.pop(0)
+lc = kfxv.mergedata(lc)
+classifier = eknn.EKNNErrClassifier(lc, trc, 5)
+classifier2 = eknn.EKNNTrueClassifier(lc, trc, 5)
+'''
