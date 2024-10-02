@@ -18,18 +18,21 @@ for i in range(n):
   c = 0 if x > y else 1
   lc.append([x, y, c])
 
-n = 1000
+n = 100
 for i in range(n):
   x = i
-  y = (r.random() * np.sqrt(n)) + i
+  y = (r.random() * np.sqrt(n)) + (i - np.sqrt(n) / 2)
   lr.append([x, y])
 
-lr = kfxv.kfold(lr)
+lr = kfxv.kfold(lr, 10)
 trr = lr.pop(0)
 lr = kfxv.mergedata(lr)
 
-regression = knn.KNNRegression(lr)
-regression.predict()
+regression = eknn.EKNNTrueRegression(lr, trr, 5, 5)
+
+for x in trr:
+  print(str(x[0]), " ", str(regression.predict(x, 5, )))
+
 
 
 
