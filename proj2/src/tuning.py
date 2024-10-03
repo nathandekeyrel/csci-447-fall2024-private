@@ -29,7 +29,7 @@ def tuneKNN(X, c):
     #merge the data
     Xc = kfxv.mergedata(Xc)
     # We'll generate a list of kn values to test against for this iteration
-    knt = np.random.randint(0, int(np.sqrt(len(Xc))), NUMGUESSES)
+    knt = np.random.randint(1, int(np.sqrt(len(Xc))), NUMGUESSES)
     # initialize the classifier
     classifier = knn.KNNClassifier(Xc)
     # initialize an array to store the 0-1 results for each kn value in knt
@@ -47,4 +47,5 @@ def tuneKNN(X, c):
       zeroones.append(zeroone / len(h))
     # append the kns list with the best performing kn value for the training set
     kns.append(knt[zeroones.index(max(zeroones))])
+  
   return np.mean(kns)
