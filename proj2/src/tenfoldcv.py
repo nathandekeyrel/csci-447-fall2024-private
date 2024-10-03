@@ -34,7 +34,17 @@ def kfold(D, k, debug = False):
   #We return the list of lists produced by the instructions in this function
   return Vss
 
-def crossvalidation(D, c, t : tr.Classifier, k=10):
+def mergedata(Ds):
+  #initialize our list that represents the merged data
+  Dm = []
+  #iterate through the chunks in Ds
+  for D in Ds:
+    #extend the merged data by the vectors in D
+    Dm.extend(D)
+  #return the vector list that resulted from the execution of this function
+  return Dm
+
+def crossvalidationC(D, c, t : tr.Classifier, k=10):
   #first we initialize our confusion matrix list
   cml = [None] * k
   #o is our original list of folds
@@ -59,12 +69,5 @@ def crossvalidation(D, c, t : tr.Classifier, k=10):
   #return the list of confusion matrices that were produced with our classifier
   return cml
 
-def mergedata(Ds):
-  #initialize our list that represents the merged data
-  Dm = []
-  #iterate through the chunks in Ds
-  for D in Ds:
-    #extend the merged data by the vectors in D
-    Dm.extend(D)
-  #return the vector list that resulted from the execution of this function
-  return Dm
+def crossvalidationR(D, t : tr.Regression, k=10):
+  pass
