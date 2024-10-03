@@ -13,12 +13,12 @@ class KNNClassifier:
     #for each vector xt in D, measure the distance between x and xt
     for xt in self.D:
       #save the distance in a tuple named e with its associated class
-      e = (-euclidianDistance(x, xt), xt[-1])
+      ct = (-euclidianDistance(x, xt), xt[-1])
       #we used the heappushpop function since the documentation claims it is more efficient than using the two functions separately
       if len(l) >= k:
-        hq.heappushpop(l, e)
+        hq.heappushpop(l, ct)
       else:
-        hq.heappush(l, e)
+        hq.heappush(l, ct)
     #initialize the dictionary for tallying
     v = {}
     #our for loop for tallying the votes
@@ -60,10 +60,10 @@ class KNNRegression:
 #euclidian distance algorithm
 def euclidianDistance(x1, x2):
   #initialize distance to zero, since we haven't measured anything yet
-  distance = 0
+  distance = 0.0
   #if the lengths aren't equal, return a -1, we should replace this with thrwoing an error
   if not len(x1) == len(x2):
-    return -1
+    return -1.0
   #find the Euclidean distance between two vectors
   for i in range(len(x1) - 1):
     #first we will use a temporary variable to get the difference between the units at position i in the vector x1 and the vector x2
