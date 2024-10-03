@@ -1,4 +1,5 @@
 import pandas as pd
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
 
 
 def preprocess_data(filepath):
@@ -37,9 +38,24 @@ def _preprocess_cancer(filepath):
     df.columns = columns
     df = df.dropna()
 
-    df = df.drop('Id', axis=1)
+    class_mapping = {
+        2: 0,
+        4: 1
+    }
 
-    # Target is 'Class'
+    df['Class'] = df['Class'].map(class_mapping)
+
+    # could add .values here, depending on if we standardize or not.
+    X = df.drop(['Id', 'Class'], axis=1)
+    y = df['Class']
+
+    # we might need to standardize numerical features,
+    # https://scikit-learn.org/dev/modules/generated/sklearn.preprocessing.StandardScaler.html
+
+    # scalar = StandardScaler()
+    # X = scalar.fit_transform(X)
+
+    return X, y.values
 
 
 def _preprocess_glass(filepath):
@@ -53,9 +69,15 @@ def _preprocess_glass(filepath):
     columns = ['Id', 'RI', 'Na', 'Mg', 'Al', 'Si', 'K', 'Ca', 'Ba', 'Fe', 'Type']
     df.columns = columns
 
-    df = df.drop('Id', axis=1)
-
+    # drop id (useless) and type (the target)
+    X = df.drop(['Id', 'Type'], axis=1)
     # Target is 'Type'
+    y = df['Type']
+
+    # scalar = StandardScaler()
+    # X = scalar.fit_transform(X)
+
+    return X, y.values
 
 
 def _preprocess_soybean(filepath):
@@ -79,9 +101,23 @@ def _preprocess_soybean(filepath):
         'Stem', 'Seed', 'Mold Growth', 'Seed Discolor', 'Seed Size', 'Shriveling'
     ]
 
-    df = df.drop(columns=columns_to_drop)
+    class_mapping = {
+        'D1': 0,
+        'D2': 1,
+        'D3': 2,
+        'D4': 3
+    }
 
-    # Target: 'Class'. may need to map
+    y = df['Class'].map(class_mapping).values  # target is 'Class'
+
+    X = df.drop([columns_to_drop, 'Class'], axis=1)
+    encoder = OneHotEncoder(handle_unknown='ignore')
+    X_encoded = encoder.fit_transform(X)
+
+    feature_names = encoder.get_feature_names_out(X.columns)
+    X = pd.DataFrame(X_encoded, columns=feature_names)
+
+    return X.values, y
 
 
 def _preprocess_abalone(filepath):
@@ -99,7 +135,16 @@ def _preprocess_abalone(filepath):
     # all relevant attributes
     # no missing values
 
+    # we need to one-hot code Sex
+
+    X = df.drop(['Rings'], axis=1)
     # Target: 'Rings' --> Age = Rings + 1.5
+    y = df['Rings']
+
+    # scalar = StandardScaler()
+    # X = scalar.fit_transform(X)
+
+    return X, y.values
 
 
 def _preprocess_fires(filepath):
