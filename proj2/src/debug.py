@@ -1,4 +1,4 @@
-  import knn as knn
+import knn as knn
 import editedKNN as eknn
 import random as r
 import time as t
