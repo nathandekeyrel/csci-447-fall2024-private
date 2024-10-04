@@ -9,14 +9,14 @@ class EKNNErrClassifier:
     self.T = copy.deepcopy(T)
     self.k = k
     self.q = quality(self, T, k)
-    self._edit(k)
+    self._edit()
   
-  def _edit(self, k):
+  def _edit(self):
     while not self.degrade():
       i = 0
       delta = 0
       while i < len(self.D):
-        c = self.classify(self.D[i], k) # I don't know what the k should be in this case
+        c = self.classify(self.D[i], 1)
         if not c == self.D[i][-1]:
           delta += 1
           self.D.pop(i)
@@ -65,7 +65,7 @@ class EKNNTrueClassifier:
     self.T = copy.deepcopy(T)
     self.k = k
     self.q = quality(self, T, k)
-    self._edit(k)
+    self._edit(1)
   
   def _edit(self, k):
     while not self.improve():
@@ -122,15 +122,15 @@ class EKNNErrRegression:
     self.k = k
     self.e = e
     self.q = qualityR(self, T, k)
-    self._edit(k)
+    self._edit(1, e)
   
-  def _edit(self, k):
+  def _edit(self, k, e):
     while not self.degrade():
       i = 0
       delta = 0
       while i < len(self.D):
         p = self.predict(self.D[i], k)
-        if not (self.D[i][-1] - self.e <= p <= self.D[i][-1] + self.e):
+        if not (self.D[i][-1] - e <= p <= self.D[i][-1] + e):
           delta += 1
           self.D.pop(i)
         i += 1
@@ -165,7 +165,7 @@ class EKNNTrueRegression:
     self.k = k
     self.e = e
     self.q = qualityR(self, T, k)
-    self._edit(k)
+    self._edit(1)
   
   def _edit(self, k):
     while not self.improve():

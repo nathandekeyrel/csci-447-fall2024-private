@@ -3,9 +3,13 @@ import numpy as np
 import knn
 import copy
 
-NUMGUESSES = 10
+NUMGUESSES = 100
 
-def tuneKNN(X, c):
+def tuneKNNRegression(X, c):
+  
+  pass
+
+def tuneKNNClassifier(X, c):
   '''
   : param X : the processed data
   : param c : the list of classes associated with that data
@@ -29,7 +33,7 @@ def tuneKNN(X, c):
     #merge the data
     Xc = kfxv.mergedata(Xc)
     # We'll generate a list of kn values to test against for this iteration
-    knt = np.random.randint(1, int(np.sqrt(len(Xc))), NUMGUESSES)
+    knt = np.random.randint(1, max(int(np.sqrt(len(Xc))), 2), NUMGUESSES)
     # initialize the classifier
     classifier = knn.KNNClassifier(Xc)
     # initialize an array to store the 0-1 results for each kn value in knt
@@ -38,6 +42,7 @@ def tuneKNN(X, c):
     for kn in knt:
       # check the performance of the kn
       for x in h:
+        #initialize the zero one results to 0
         zeroone = 0
         # store the predicted class into c
         c = classifier.classify(x, kn)
@@ -46,6 +51,6 @@ def tuneKNN(X, c):
       # once loop is done, append the zero one results to the list
       zeroones.append(zeroone / len(h))
     # append the kns list with the best performing kn value for the training set
-    kns.append(knt[zeroones.index(max(zeroones))])
-  
-  return np.mean(kns)
+    kns.append(knt[zeroones.index(min(zeroones))])
+  # return the mean of the selected k values
+  return int(np.mean(kns) + 0.5)

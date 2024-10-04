@@ -3,15 +3,17 @@ import numpy as np
 import training as tr
 import random
 
-def kfold(D, k, debug = False):
+def kfold(X, Y, k, debug = False):
   #copy the vectors in D to a vector list Vs
-  Vs = copy.deepcopy(D)
+  Vs = list(zip(X, Y))
+  Vs = copy.copy(Vs)
   #shuffle the vectors in Vs
   random.shuffle(Vs)
   #sort the vectors in Vs by their class. Since the sort is stable, the randomization introduced by the shuffle in the previous step will be preserved
-  Vs.sort(key=lambda x: int(x[-1]))
+  Vs.sort(key=lambda x: x[-1])
   #initialize our list of vector lists Vss, which will represent the folds
-  Vss = [[] for _ in range(k)]
+  Xs = [[] for _ in range(k)]
+  Ys = [[] for _ in range(k)]
   #iterate over the indices for each vector in Vs
   for i in range(len(Vs)):
     '''
@@ -20,19 +22,10 @@ def kfold(D, k, debug = False):
       Given k = 3 and l = [0, 1, 2, 3, 4, 5]
       stratification(l) = [[0, 3], [1, 4], [2, 5]]
     '''
-    Vss[i % k].append(Vs[i])
-  #debug code for checking that stratification is working properly
-  if debug:
-    #iterate over the list of lists of vectors
-    for VssVs in Vss:
-      #iterate over the vectors in the list of vectors from the list of lists of vectors
-      for VssVsV in VssVs:
-        #print the vector from the list of vectors from the list of lists of vectors
-        print(VssVsV)
-      #print a line break to separate each list of vectors from the list of lists of vectors
-      print()
+    Xs[i % k].append(Vs[i][0])
+    Ys[i % k].append(Vs[i][1])
   #We return the list of lists produced by the instructions in this function
-  return Vss
+  return Xs, Ys
 
 def mergedata(Ds):
   #initialize our list that represents the merged data
