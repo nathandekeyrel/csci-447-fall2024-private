@@ -7,6 +7,7 @@ class KMeans:
     This class implements the K-Means clustering algorithm, which turns n observations
     into k clusters where each observation belongs to the cluster with the nearest centroid.
     """
+
     def __init__(self, n_clusters: int, max_iterations=100):
         """ Initialize the KMeans object.
 
