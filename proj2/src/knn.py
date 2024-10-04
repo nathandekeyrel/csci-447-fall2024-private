@@ -32,19 +32,18 @@ class KNNRegression:
     def __init__(self):
         pass
     
-    def fit(self, X, y):
+    def fit(self, X, Y):
         self.X = X
-        self.y = y
+        self.Y = Y
 
     def predict(self, X, k, sig=10):
         return np.array([self._predict(x, k, sig) for x in X])
-
 
     def _predict(self, x, k, sig):
         distances = [euclidianDistance(x, xt) for xt in self.X]
         indices = np.argsort(distances)[:k]
         weights = [RBFkernel(distances[i], sig) for i in indices]
-        return np.sum(np.array([(self.y[i] * weights[j]) for i, j in zip(indices, range(k))])) / np.sum(np.array(weights))
+        return np.sum(np.array([(self.Y[i] * weights[j]) for i, j in zip(indices, range(k))])) / np.sum(np.array(weights))
 
 
 
