@@ -15,12 +15,22 @@ class KNNClassifier:
         for xt in self.D:
             # save the distance in a tuple named e with its associated class
             e = (-euclidianDistance(x, xt), xt[-1])
-            # we used the heappushpop function since the documentation claims it is
-            # more efficient than using the two functions separately
+            # we used the heappushpop function since the documentation claims it
+            # is more efficient than using the two functions separately
             if len(l) >= k:
                 hq.heappushpop(l, e)
             else:
                 hq.heappush(l, e)
+
+        # # probably an easier way to do plurality vote
+        # votes = {}
+        # for _, label in l:
+        #     # tries to get current count for label, returns 0 if it isn't in the dictionary yet
+        #     votes[label] = votes.get(label, 0) + 1  # then add one to that count
+        # # store new count back in the dictionary
+        # max_count = max(votes, key=votes.get)
+        # return max_count  # after processing all neighbors, label with highest count in votes wins
+
         # initialize the dictionary for tallying
         v = {}
         # our for loop for tallying the votes
@@ -59,25 +69,44 @@ class KNNRegression:
             else:
                 hq.heappush(l, e)
         # get the average of the target values of the k nearest neighbors
+
+        # using gaussian kernel regression
+        # you can decide how you want to implement this.
+        # also, quick note because I know you aren't super familiar with some python nuances, the '_' in a for loop,
+        # means we just ignore what we are iterating over because it isn't relevant. kind of like a throwaway variable
+        # weights = [gaussian_kernel(-dist, sigma) for dist, _ in l]
+        # values = [value for _, value in l]
+        # return np.average(values, weights=weights)
+
         return sum(e[1] for e in l) / k
+
+
+# this is a pretty complicated algorithm. I think it can be simpler.
+# def euclidianDistance(x1, x2):
+#     # should probably check if vectors are same length but cba
+#     distance = np.sqrt(sum((a - b) ** 2 for a, b in zip(x1, x2)))
+#     return distance
+
+# the sigma (bandwidth) will have to be tuned...
+# def gaussian_kernel(distance, sigma):
+#     rbf = np.exp(-(distance ** 2) / (2 * sigma ** 2))
+#     return rbf
 
 
 # euclidian distance algorithm
 def euclidianDistance(x1, x2):
     # initialize distance to zero, since we haven't measured anything yet
     distance = 0
-    # if the lengths aren't equal, return a -1, we should replace this with throwing an error
+    # if the lengths aren't equal, return a -1, we should replace this with thrwoing an error
     if not len(x1) == len(x2):
         return -1
     # find the Euclidean distance between two vectors
     for i in range(len(x1) - 1):
-        # first we will use a temporary variable to get the difference
-        # between the units at position i in the vector x1 and the vector x2
+        # first we will use a temporary variable to get the difference between the units at position i in the vector x1 and the vector x2
         d = x1[i] - x2[i]
         # then we add the square of that difference to the distance value
         distance += (d * d)
-    # after the squares of the differences are all added up, we get the square root of the
-    # final distance value to get the actual Euclidean distance
+    # after the squares of the differences are all added up, we get the square root of the final distance value to get the actual Euclidean distance
     distance = np.sqrt(distance)
-    # then we return that distance to close out the frame
+    # then we return that ditance to close out the frame
     return distance
