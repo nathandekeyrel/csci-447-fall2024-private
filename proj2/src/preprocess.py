@@ -53,7 +53,8 @@ def _preprocess_cancer(filepath):
         2: 0,
         4: 1
     }
-    y = df['Class'].map(class_mapping).values
+
+    y = df['Class'].map(class_mapping).values  # Target is 'Class'
 
     # drop 'Id' (useless) and 'Class' (target)
     X = df.drop(['Id', 'Class'], axis=1)
@@ -61,7 +62,7 @@ def _preprocess_cancer(filepath):
     scaler = StandardScaler()
     X = scaler.fit_transform(X)
 
-    return X, y
+    return X.values, y
 
 
 def _preprocess_glass(filepath):
@@ -77,6 +78,7 @@ def _preprocess_glass(filepath):
 
     # drop id (useless) and type (the target)
     X = df.drop(['Id', 'Type'], axis=1)
+
     # Target is 'Type' is valued from 1-7 (integers)
     # 4 vehicle_windows_non_float_processed (none in this database)
     y = df['Type'].values
@@ -85,7 +87,7 @@ def _preprocess_glass(filepath):
     scalar = StandardScaler()
     X = scalar.fit_transform(X)
 
-    return X, y
+    return X.values, y
 
 
 def _preprocess_soybean(filepath):
@@ -153,7 +155,7 @@ def _preprocess_abalone(filepath):
     df.columns = columns
 
     # Target: 'Rings' --> Age = Rings + 1.5
-    y = df['Rings'].values
+    y = df['Rings'].values  # Target is 'Rings'
 
     # one-hot encode only the 'Sex' column
     encoder = OneHotEncoder(handle_unknown='ignore')
@@ -173,12 +175,6 @@ def _preprocess_abalone(filepath):
     scaler = StandardScaler()
     X[numeric_columns] = scaler.fit_transform(X[numeric_columns])
 
-    # check feature importance
-    mi_scores = mutual_info_classif(X, y)
-    mi_scores = pd.Series(mi_scores, index=X.columns)
-    print("\nFeature importance:")
-    print(mi_scores.sort_values(ascending=False))
-
     return X.values, y
 
 
@@ -197,7 +193,7 @@ def _preprocess_fires(filepath):
     # Target: area - the burned area of the forest (in ha): 0.00 to 1090.84
     #                (this output variable is very skewed towards 0.0, thus it may make
     #                sense to model with the logarithm transform)
-    y = np.log1p(df['area'])
+    y = np.log1p(df['area']).values
     # I used log1p because "This function is particularly useful when xxx is close to zero"
     # ref - https://medium.com/@noorfatimaafzalbutt/understanding-np-log-and-np-log1p-in-numpy-99cefa89cd30
     # documentation - https://numpy.org/doc/2.0/reference/generated/numpy.log1p.html
@@ -223,7 +219,7 @@ def _preprocess_fires(filepath):
     print("\nFeature importance:")
     print(mi_scores.sort_values(ascending=False))
 
-    return X.values, y.values
+    return X.values, y
 
 
 def _preprocess_computer(filepath):
@@ -248,11 +244,5 @@ def _preprocess_computer(filepath):
     # standardize continuous values
     scaler = StandardScaler()
     X = pd.DataFrame(scaler.fit_transform(X), columns=numeric_columns)
-
-    # at least check if correlation. Unlikely we need it here.
-    mi_scores = mutual_info_classif(X, y)
-    mi_scores = pd.Series(mi_scores, index=X.columns)
-    print("\nFeature importance:")
-    print(mi_scores.sort_values(ascending=False))
 
     return X.values, y
