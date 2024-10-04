@@ -23,8 +23,8 @@ class KNNClassifier:
                 votes[self.y[index]] += 1
             else:
                 votes.update({self.y[index] : 1})
-        votes = list(votes)
-        votes.sort()
+        votes = list(votes.items())
+        votes.sort(key = lambda x : x[1])
         return votes[0][0]
 
 class KNNRegression:
