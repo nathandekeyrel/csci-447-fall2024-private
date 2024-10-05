@@ -2,11 +2,12 @@ import copy
 import numpy as np
 import training as tr
 import random
+import knn
+import editedKNN as eknn
 
 def kfold(X, Y, k, debug = False):
     #copy the vectors in D to a vector list Vs
     Vs = list(zip(X, Y))
-    Vs = copy.copy(Vs)
     #shuffle the vectors in Vs
     random.shuffle(Vs)
     #sort the vectors in Vs by their class. Since the sort is stable, the randomization introduced by the shuffle in the previous step will be preserved
@@ -26,6 +27,29 @@ def kfold(X, Y, k, debug = False):
         Ys[i % k].append(Vs[i][1])
     #We return the list of lists produced by the instructions in this function
     return Xs, Ys
+
+def _crossvalidation(i, X, Y, nClasses, k, cl):
+    Xc = copy.copy(X)
+    Yc = copy.copy(Y)
+    Xh = np.array(Xc.pop(i))
+    Yh = np.array(Yc.pop(i))
+    X = np.array(mergedata(X))
+    Y = np.array(mergedata(Y))
+    cl.fit(X, Y)
+    predictions = cl.predict(Xh, k)
+    cm = np.array([[0 for _ in range(nClasses)] for _ in range(nClasses)])
+    for x, y in zip(predictions, Yh):
+        cm[x][y] += 1
+    return cm
+
+def tenfoldcrossvalidationC(cl, X, Y, k):
+    nClasses = np.max(Y) + 1
+    X, Y = kfold(X, Y, 10)
+    cms = [_crossvalidation(i, X, Y, nClasses, k, cl) for i in range(10)]
+    return cms
+
+def tenfoldcrossvalidationR():
+    pass
 
 def mergedata(Ds):
     # initialize our list that represents the merged data
