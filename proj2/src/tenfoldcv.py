@@ -28,13 +28,13 @@ def kfold(X, Y, k, debug = False):
     #We return the list of lists produced by the instructions in this function
     return Xs, Ys
 
-def _crossvalidation(i, X, Y, nClasses, k, cl):
+def _crossvalidationC(i, X, Y, nClasses, k, cl):
     Xc = copy.copy(X)
     Yc = copy.copy(Y)
     Xh = np.array(Xc.pop(i))
     Yh = np.array(Yc.pop(i))
-    X = np.array(mergedata(X))
-    Y = np.array(mergedata(Y))
+    X = np.array(mergedata(Xc))
+    Y = np.array(mergedata(Yc))
     cl.fit(X, Y)
     predictions = cl.predict(Xh, k)
     cm = np.array([[0 for _ in range(nClasses)] for _ in range(nClasses)])
@@ -45,11 +45,28 @@ def _crossvalidation(i, X, Y, nClasses, k, cl):
 def tenfoldcrossvalidationC(cl, X, Y, k):
     nClasses = np.max(Y) + 1
     X, Y = kfold(X, Y, 10)
-    cms = [_crossvalidation(i, X, Y, nClasses, k, cl) for i in range(10)]
+    cms = [_crossvalidationC(i, X, Y, nClasses, k, cl) for i in range(10)]
     return cms
 
-def tenfoldcrossvalidationR():
-    pass
+def _crossvalidationR(i, X, Y, sig, k, re):
+    Xc = copy.copy(X)
+    Yc = copy.copy(Y)
+    Xh = np.array(Xc.pop(i))
+    Yh = np.array(Yc.pop(i))
+    Xc = np.array(mergedata(Xc))
+    Yc = np.array(mergedata(Yc))
+    re.fit(Xc, Yc)
+    predictions = re.predict(Xh, k, sig)
+    mse = []
+    for i in range(len(Yh)):
+        mse.append((predictions[i] - Yh[i]) ** 2)
+    mse = np.mean(mse)
+    return mse
+
+def tenfoldcrossvalidationR(re, X, Y, k, sig):
+    X, Y = kfold(X, Y, 10)
+    mses = [_crossvalidationR(i, X, Y, sig, k, re) for i in range(10)]
+    return mses
 
 def mergedata(Ds):
     # initialize our list that represents the merged data

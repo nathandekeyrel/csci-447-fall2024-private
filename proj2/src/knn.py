@@ -43,13 +43,17 @@ class KNNRegression:
         distances = [euclidianDistance(x, xt) for xt in self.X]
         indices = np.argsort(distances)[:k]
         weights = [RBFkernel(distances[i], sig) for i in indices]
-        return np.sum(np.array([(self.Y[i] * weights[j]) for i, j in zip(indices, range(k))])) / np.sum(np.array(weights))
+        w = sum(weights)
+        nns = [self.Y[i] for i in indices]
+        s = sum([nns[i] * weights[i] for i in range(len(indices))])
+        prediction = s / w
+        return prediction
 
 
 
 #radial basis function kernel
 def RBFkernel(distance, sig):
-    return np.exp(-(distance ** 2) / (2 * sig ** 2)) / (np.sqrt(2) * np.pi)
+    return np.exp(-(distance ** 2) / (2 * sig ** 2))
 
 # euclidian distance algorithm
 def euclidianDistance(x1, x2):
