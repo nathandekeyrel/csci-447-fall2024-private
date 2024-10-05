@@ -1,14 +1,6 @@
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.feature_selection import mutual_info_classif
-
-"""
-NOTE: this does rely on some sklearn methods. I will talk to either the prof or TA (whichever is in class) to make sure
-it is ok to use them in this sense. If not, the majority of the datasets won't need feature selection (assumption)
-so I will figure out how to do it from scratch for the forest-fires dataset if needed. Because of how explicit the names
-file was about feature correlation, I think it's worth checking for that dataset.
-"""
 
 
 def preprocess_data(filepath):
@@ -106,12 +98,6 @@ def _preprocess_soybean(filepath):
                'Shriveling', 'Roots', 'Class']
     df.columns = columns
 
-    # these columns either have values of all 0 or all 1. depending on outcome we may or may not keep this.
-    columns_to_drop = [
-        'Date', 'Temp', 'Leafspots Halo', 'Leaf Shread', 'Leaf Malf', 'Leaf Mild',
-        'Stem', 'Seed', 'Mold Growth', 'Seed Discolor', 'Seed Size', 'Shriveling'
-    ]
-
     class_mapping = {
         'D1': 0,
         'D2': 1,
@@ -121,18 +107,7 @@ def _preprocess_soybean(filepath):
 
     y = df['Class'].map(class_mapping).values  # target is 'Class'
 
-    # temporary to check feature importance
     X = df.drop('Class', axis=1)
-
-    # check feature importance
-    mi_scores = mutual_info_classif(X, y)
-    mi_scores = pd.Series(mi_scores, index=X.columns)
-    print("\nFeature importance:")
-    print(mi_scores.sort_values(ascending=False))
-
-    # final X will be determined by mi_scores output.
-
-    # X = df.drop([columns_to_drop, 'Class'], axis=1)
     encoder = OneHotEncoder(handle_unknown='ignore')
     X_encoded = encoder.fit_transform(X)
 
@@ -213,12 +188,6 @@ def _preprocess_fires(filepath):
     scaler = StandardScaler()
     X[numeric_columns] = scaler.fit_transform(X[numeric_columns])
 
-    # Note: several of the attributes may be correlated, thus it makes sense to apply some sort of feature selection.
-    mi_scores = mutual_info_classif(X, y)
-    mi_scores = pd.Series(mi_scores, index=X.columns)
-    print("\nFeature importance:")
-    print(mi_scores.sort_values(ascending=False))
-
     return X.values, y
 
 
@@ -236,8 +205,6 @@ def _preprocess_computer(filepath):
 
     y = df['PRP'].values  # Target: 'PRP', continuously valued
 
-    # drop vendor name, model name, and erp. they don't actually tell us anything about the computer
-    # also dropped PRP as it's the target.
     numeric_columns = df.drop(['Vendor Name', 'Model Name', 'PRP', 'ERP'], axis=1).columns
     X = df[numeric_columns]
 
