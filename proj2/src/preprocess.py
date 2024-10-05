@@ -71,8 +71,8 @@ def _preprocess_glass(filepath):
     # drop id (useless) and type (the target)
     X = df.drop(['Id', 'Type'], axis=1)
 
-    # Target is 'Type' is valued from 1-7 (integers)
-    # 4 vehicle_windows_non_float_processed (none in this database)
+    # target is 'Type' is valued from 1-7 (integers)
+    # "4 vehicle_windows_non_float_processed (none in this database)" - from names
     y = df['Type'].values
 
     # the other classes are numeric, standardize
@@ -114,6 +114,9 @@ def _preprocess_soybean(filepath):
     feature_names = encoder.get_feature_names_out(X.columns)
     X = pd.DataFrame(X_encoded, columns=feature_names)
 
+    # I'm unsure if we need to standardize values here. They are categorical features but have been 'nominalized'
+    # so I don't know if it would be appropriate
+
     return X.values, y
 
 
@@ -129,8 +132,8 @@ def _preprocess_abalone(filepath):
                'Shucked Weight', 'Viscera Weight', 'Shell Weight', 'Rings']
     df.columns = columns
 
-    # Target: 'Rings' --> Age = Rings + 1.5
-    y = df['Rings'].values  # Target is 'Rings'
+    # target: 'Rings'
+    y = df['Rings'].values
 
     # one-hot encode only the 'Sex' column
     encoder = OneHotEncoder(handle_unknown='ignore')
@@ -147,6 +150,7 @@ def _preprocess_abalone(filepath):
         df[numeric_columns]
     ], axis=1)
 
+    # standardize numerical values
     scaler = StandardScaler()
     X[numeric_columns] = scaler.fit_transform(X[numeric_columns])
 
@@ -180,11 +184,13 @@ def _preprocess_fires(filepath):
 
     numeric_columns = df.drop(['month', 'day', 'area'], axis=1).columns
 
+    # new datasets with encoded month and day
     X = pd.concat([
         pd.DataFrame(categorical_encoded, columns=categorical_column_names),
         df[numeric_columns]
     ], axis=1)
 
+    # standardize numerical values
     scaler = StandardScaler()
     X[numeric_columns] = scaler.fit_transform(X[numeric_columns])
 
@@ -205,6 +211,9 @@ def _preprocess_computer(filepath):
 
     y = df['PRP'].values  # Target: 'PRP', continuously valued
 
+    # I still dropped names and erp because I don't think there are value in these columns
+    # if you want me to keep them, we would need to encode the names. ERP is their model's prediction,
+    # so I think it might cause overfitting problems
     numeric_columns = df.drop(['Vendor Name', 'Model Name', 'PRP', 'ERP'], axis=1).columns
     X = df[numeric_columns]
 
