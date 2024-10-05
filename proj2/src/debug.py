@@ -13,7 +13,7 @@ lr: list[list] = []
 X = []
 Y = []
 
-""" #generate list of n vectors with random x and y values, and the associated class
+#generate list of n vectors with random x and y values, and the associated class
 n = 100
 for i in range(n):
   x = r.random()
@@ -23,24 +23,12 @@ for i in range(n):
   X.append([x, y])
   Y.append(c)
 
-X, Y = kfxv.kfold(X, Y, 10)
-Xt = X.pop(0)
-Yt = Y.pop(0)
-X = kfxv.mergedata(X)
-Y = kfxv.mergedata(Y)
+classifier = knn.KNNClassifier()
+cms = kfxv.tenfoldcrossvalidationC(classifier, X, Y, 5)
+print(cms)
+print(sum(cms))
 
-classifier = eknn.EKNNErrClassifier()
-classifier.fit(np.array(X), np.array(Y))
-classifier.edit(Xt, Yt)
-
-classifierp = knn.KNNClassifier()
-classifierp.fit(np.array(X), np.array(Y))
-
-print(sum([classifier._predict(x, 5) == y for x, y in zip(Xt, Yt)]))
-print(len(classifier.cl.X))
-print(sum([classifierp._predict(x, 5) == y for x, y in zip(Xt, Yt)])) """
-
-n = 100
+""" n = 100
 X = np.array([i for i in range(n)])
 Y = np.array([(r.random() * np.sqrt(n)) + (i - np.sqrt(n) / 2) for i in range(n)])
 
@@ -65,7 +53,7 @@ print(np.mean((regressionE.predict(np.array(Xh), 5, 5) - np.array(Yh)) ** 2))
 print(len(regressionE.cl.X))
 regressionP = knn.KNNRegression()
 regressionP.fit(np.array(X), np.array(Y))
-print(np.mean((regressionP.predict(np.array(Xh), 5, 5) - np.array(Yh)) ** 2)) 
+print(np.mean((regressionP.predict(np.array(Xh), 5, 5) - np.array(Yh)) ** 2))  """
 
 
 """ 
