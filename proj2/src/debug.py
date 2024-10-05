@@ -5,6 +5,7 @@ import time as t
 import tenfoldcv as kfxv
 import numpy as np
 #import tuning as tu
+import preprocess as prpr
 
 r.seed(t.time())
 lc: list[list] = []
@@ -13,7 +14,17 @@ lr: list[list] = []
 X = []
 Y = []
 
-#generate list of n vectors with random x and y values, and the associated class
+""" X, Y = prpr.preprocess_data("data/breast-cancer-wisconsin.data")
+cl = knn.KNNClassifier()
+cms = kfxv.tenfoldcrossvalidationC(cl, X, Y, 5)
+print(cms) """
+
+X, Y = prpr.preprocess_data("data/machine.data")
+re = knn.KNNRegression()
+mses = kfxv.tenfoldcrossvalidationR(re, X, Y, 3, 10)
+print(mses)
+
+""" #generate list of n vectors with random x and y values, and the associated class
 n = 100
 for i in range(n):
   x = r.random()
@@ -26,7 +37,7 @@ for i in range(n):
 classifier = knn.KNNClassifier()
 cms = kfxv.tenfoldcrossvalidationC(classifier, X, Y, 5)
 print(cms)
-print(sum(cms))
+print(sum(cms)) """
 
 """ n = 100
 X = np.array([i for i in range(n)])
