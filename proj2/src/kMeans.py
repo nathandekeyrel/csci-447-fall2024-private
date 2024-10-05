@@ -92,10 +92,11 @@ class KMeans:
     def get_reduced_dataset(self):
         """ Get the reduced dataset consisting of centroids and their corresponding mean target values.
 
-        :return: List of lists, each containing a centroid and its mean target value
+        :return: A tuple of 2 numpy arrays
         """
         if self.centroids is None or self.cluster_targets is None:
             raise ValueError("Model has not been fitted. Call 'fit' before getting reduced dataset.")
 
-        targets = [list(centroid) + [target] for centroid, target in zip(self.centroids, self.cluster_targets)]
-        return targets
+        # changed from list to align better with overall program structure
+        # returns similar to what preprocess.py methods return
+        return np.array(self.centroids), np.array(self.cluster_targets)
