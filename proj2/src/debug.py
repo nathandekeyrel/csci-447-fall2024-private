@@ -1,5 +1,6 @@
 import knn as knn
 import editedKNN as eknn
+import kMeans as km
 import random as r
 import time as t
 import tenfoldcv as kfxv
@@ -17,12 +18,12 @@ Y = []
 """ X, Y = prpr.preprocess_data("data/breast-cancer-wisconsin.data")
 cl = knn.KNNClassifier()
 cms = kfxv.tenfoldcrossvalidationC(cl, X, Y, 5)
-print(cms) """
+print(cms)
 
 X, Y = prpr.preprocess_data("data/machine.data")
 re = knn.KNNRegression()
 mses = kfxv.tenfoldcrossvalidationR(re, X, Y, 3, 10)
-print(mses)
+print(mses) """
 
 """ #generate list of n vectors with random x and y values, and the associated class
 n = 100
@@ -34,10 +35,16 @@ for i in range(n):
   X.append([x, y])
   Y.append(c)
 
-classifier = knn.KNNClassifier()
-cms = kfxv.tenfoldcrossvalidationC(classifier, X, Y, 5)
-print(cms)
-print(sum(cms)) """
+Xs, Ys = kfxv.kfold(X, Y, 10)
+Xh = np.array(X.pop(0))
+Yh = np.array(Y.pop(0))
+Xt = np.array(kfxv.mergedata(Xs))
+Yt = np.array(kfxv.mergedata(Ys))
+
+classifier = km.KMeans(10)
+classifier.fit(Xt, Yt)
+results = classifier.predict(Xh)
+print((Yt, results)) """
 
 """ n = 100
 X = np.array([i for i in range(n)])
@@ -70,3 +77,8 @@ print(np.mean((regressionP.predict(np.array(Xh), 5, 5) - np.array(Yh)) ** 2))  "
 """ 
 print(np.array([[np.sqrt(np.sum(x - y) ** 2) for y in ys] for x in xs]))
 print(np.sqrt(np.sum([(x - y) ** 2 for x, y in zip(xs, ys)]))) """
+
+
+paths = ["data/abalone.data", "data/breast-cancer-wisconsin.data", "data/forestfires.csv", "data/glass.data", "data/machine.data", "data/soybean-small.data"]
+for path in paths:
+  prpr.preprocess_data(path)
