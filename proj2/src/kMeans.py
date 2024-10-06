@@ -34,9 +34,9 @@ class KMeans:
     def fit(self, X, y):
         """ Perform K-Means clustering on the input data.
 
-        :param X: Input data to cluster, shape (n_samples, n_features)
-        :param y: Target values corresponding to each sample in X
-        :return: The fitted KMeans object
+                :param X: Input data to cluster, shape (n_samples, n_features)
+                :param y: Target values corresponding to each sample in X
+                :return: The fitted KMeans object
         """
         # initialize centroids randomly
         self.centroids = X[np.random.choice(X.shape[0], self.n_clusters, replace=False)]
@@ -44,10 +44,11 @@ class KMeans:
         for _ in range(self.max_iterations):
             # calculate distances between each point and all centroids
             distances = np.array([[self.euclid_dist(x, c) for c in self.centroids] for x in X])
-            labels = np.argmin(distances, axis=1)  # assign each point to nearest centroid
+            self.labels_ = np.argmin(distances, axis=1)  # assign each point to nearest centroid
 
             # update centroid based on mean of points in each cluster
-            new_centroids = np.array([X[labels == i].mean(axis=0) for i in range(self.n_clusters)])
+            new_centroids = np.array([X[self.labels_ == i].mean(axis=0) if np.sum(self.labels_ == i) > 0
+                                      else self.centroids[i] for i in range(self.n_clusters)])
 
             # check for convergence
             if np.allclose(self.centroids, new_centroids):
@@ -55,8 +56,32 @@ class KMeans:
 
             self.centroids = new_centroids
 
-        self.cluster_targets = [y[self.labels_ == i].mean() for i in range(self.n_clusters)]
+        # calculate cluster targets, handling empty clusters
+        self.cluster_targets = np.array([y[self.labels_ == i].mean() if np.sum(self.labels_ == i) > 0
+                                         else np.nan for i in range(self.n_clusters)])
         return self
+
+    # def fit(self, X, y):
+
+    #     # initialize centroids randomly
+    #     self.centroids = X[np.random.choice(X.shape[0], self.n_clusters, replace=False)]
+    #
+    #     for _ in range(self.max_iterations):
+    #         # calculate distances between each point and all centroids
+    #         distances = np.array([[self.euclid_dist(x, c) for c in self.centroids] for x in X])
+    #         labels = np.argmin(distances, axis=1)  # assign each point to nearest centroid
+    #
+    #         # update centroid based on mean of points in each cluster
+    #         new_centroids = np.array([X[labels == i].mean(axis=0) for i in range(self.n_clusters)])
+    #
+    #         # check for convergence
+    #         if np.allclose(self.centroids, new_centroids):
+    #             break
+    #
+    #         self.centroids = new_centroids
+    #
+    #     self.cluster_targets = [y[self.labels_ == i].mean() for i in range(self.n_clusters)]
+    #     return self
 
     def predict(self, X):
         """ Predict cluster labels for the input data.
@@ -97,6 +122,6 @@ class KMeans:
         if self.centroids is None or self.cluster_targets is None:
             raise ValueError("Model has not been fitted. Call 'fit' before getting reduced dataset.")
 
-        # changed from list to align better with overall program structure
-        # returns similar to what preprocess.py methods return
-        return np.array(self.centroids), np.array(self.cluster_targets)
+        # remove centroids and targets corresponding to empty clusters
+        valid_indices = ~np.isnan(self.cluster_targets)
+        return self.centroids[valid_indices], self.cluster_targets[valid_indices]
