@@ -102,5 +102,5 @@ def calculate_f_score(y_true, y_pred):
     :return: array-like of shape (n_samples)
         F1 score for each class.
     """
-    f_score = f1_score(y_true, y_pred, labels=None, average=None)
+    f_score = f1_score(y_true, y_pred, labels=None, average=None, zero_division=0)
     return f_score
