@@ -54,7 +54,7 @@ def _preprocess_cancer(filepath):
     scaler = StandardScaler()
     X = scaler.fit_transform(X)
 
-    return X.values, y
+    return X, y
 
 
 def _preprocess_glass(filepath):
@@ -68,18 +68,18 @@ def _preprocess_glass(filepath):
     columns = ['Id', 'RI', 'Na', 'Mg', 'Al', 'Si', 'K', 'Ca', 'Ba', 'Fe', 'Type']
     df.columns = columns
 
+    # target is 'Type' is valued from 1-7 (integers)
+    # "4 vehicle_windows_non_float_processed (none in this database)" - from names
+    y = df['Type'].values
+
     # drop id (useless) and type (the target)
     X = df.drop(['Id', 'Type'], axis=1)
-
-    # Target is 'Type' is valued from 1-7 (integers)
-    # 4 vehicle_windows_non_float_processed (none in this database)
-    y = df['Type'].values
 
     # the other classes are numeric, standardize
     scalar = StandardScaler()
     X = scalar.fit_transform(X)
 
-    return X.values, y
+    return X, y
 
 
 def _preprocess_soybean(filepath):
@@ -108,7 +108,7 @@ def _preprocess_soybean(filepath):
     y = df['Class'].map(class_mapping).values  # target is 'Class'
 
     X = df.drop('Class', axis=1)
-    encoder = OneHotEncoder(handle_unknown='ignore')
+    encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
     X_encoded = encoder.fit_transform(X)
 
     feature_names = encoder.get_feature_names_out(X.columns)
@@ -129,11 +129,11 @@ def _preprocess_abalone(filepath):
                'Shucked Weight', 'Viscera Weight', 'Shell Weight', 'Rings']
     df.columns = columns
 
-    # Target: 'Rings' --> Age = Rings + 1.5
-    y = df['Rings'].values  # Target is 'Rings'
+    # target: 'Rings'
+    y = df['Rings'].values
 
     # one-hot encode only the 'Sex' column
-    encoder = OneHotEncoder(handle_unknown='ignore')
+    encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
     sex_encoded = encoder.fit_transform(df[['Sex']])
     sex_column_names = encoder.get_feature_names_out(['Sex'])
 
@@ -147,6 +147,7 @@ def _preprocess_abalone(filepath):
         df[numeric_columns]
     ], axis=1)
 
+    # standardize numerical values
     scaler = StandardScaler()
     X[numeric_columns] = scaler.fit_transform(X[numeric_columns])
 
@@ -174,17 +175,19 @@ def _preprocess_fires(filepath):
     # documentation - https://numpy.org/doc/2.0/reference/generated/numpy.log1p.html
 
     # one-hot encode 'month' and 'day'
-    encoder = OneHotEncoder(handle_unknown='ignore')
+    encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
     categorical_encoded = encoder.fit_transform(df[['month', 'day']])
     categorical_column_names = encoder.get_feature_names_out(['month', 'day'])
 
     numeric_columns = df.drop(['month', 'day', 'area'], axis=1).columns
 
+    # new datasets with encoded month and day
     X = pd.concat([
         pd.DataFrame(categorical_encoded, columns=categorical_column_names),
         df[numeric_columns]
     ], axis=1)
 
+    # standardize numerical values
     scaler = StandardScaler()
     X[numeric_columns] = scaler.fit_transform(X[numeric_columns])
 
@@ -205,6 +208,9 @@ def _preprocess_computer(filepath):
 
     y = df['PRP'].values  # Target: 'PRP', continuously valued
 
+    # I still dropped names and erp because I don't think there are value in these columns
+    # if you want me to keep them, we would need to encode the names. ERP is their model's prediction,
+    # so I think it might cause overfitting problems
     numeric_columns = df.drop(['Vendor Name', 'Model Name', 'PRP', 'ERP'], axis=1).columns
     X = df[numeric_columns]
 
@@ -212,4 +218,4 @@ def _preprocess_computer(filepath):
     scaler = StandardScaler()
     X = pd.DataFrame(scaler.fit_transform(X), columns=numeric_columns)
 
-    return X.values, y
+    return X, y
