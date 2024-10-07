@@ -6,7 +6,15 @@ import knn
 import editedKNN as eknn
 import evaluating as ev
 
-def kfold(X, Y, k, debug = False):
+def kfold(X, Y, k):
+    """Stratify and break the data into k folds
+    
+    :param X: The feature vectors
+    :param Y: The target values
+    :param k: The number of folds
+    :return: Xs, Ys (list[list], list[list])
+        The folds of the feature vectors and their associated target values
+    """
     #copy the vectors in D to a vector list Vs
     Vs = list(zip(X, Y))
     #shuffle the vectors in Vs
@@ -30,6 +38,10 @@ def kfold(X, Y, k, debug = False):
     return Xs, Ys
 
 def _crossvalidationC(i, X, Y, nClasses, k, cl):
+    """Does cross validation on a single fold for a givven classifier
+
+    
+    """
     # copy the X and Y arrays to keep the sample data intact
     Xc = copy.copy(X)
     Yc = copy.copy(Y)

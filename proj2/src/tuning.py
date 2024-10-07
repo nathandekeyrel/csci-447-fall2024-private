@@ -5,6 +5,7 @@ import editedKNN as eknn
 import kMeans as km
 import copy
 import evaluating as ev
+import preprocess as pr
 from sklearn.metrics import r2_score
 
 ks = [1, 3, 5, 7, 13, 15]
@@ -79,7 +80,7 @@ def tuneEKNNClassifier(X, Y):
             perf[j] += ev.zero_one_loss(Y_test, predictions)
     best = min(perf)
     index = perf.index(best)
-    return ks[index], cl.numberOfExamples()
+    return ks[index], min(cl.numberOfExamples(), len(X_train) - cl.numberOfExamples)
 
 def tuneEKNNRegression(X, Y):
     Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
@@ -101,7 +102,7 @@ def tuneEKNNRegression(X, Y):
     sig_i = max_val_arr.index(max_val)
     e_i = max_val_mat[sig_i].index(max_val)
     k_i = perf[e_i][sig_i].index(max_val)
-    return ks[k_i], sigs[sig_i], this_es[e_i], cl.numberOfExamples()
+    return ks[k_i], sigs[sig_i], this_es[e_i], min(cl.numberOfExamples(), len(X_train) - cl.numberOfExamples)
 
 def tuneKMeansClassifier(X, Y, kc):
     Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
@@ -139,3 +140,15 @@ def tuneKMeansRegression(X, Y, kc):
     sig_i = max_arr.index(max_val)
     k_i = perf[sig_i].index(max_arr)
     return ks[k_i], sigs[sig_i]
+
+def tuneEverything(datadirectory : str):
+    if not datadirectory.endswith("/"):
+        datadirectory += "/"
+    filenames = ["breast-cancer-wisconsin.data", "glass.data", "soybean-small.data", "abalone.data", "forestfires.csv", "machine.data"]
+    paths = [datadirectory + filenames[i] for i in range(6)]
+    for i in range(3):
+        path = paths[i]
+        X, Y = pr.preprocess_data(path)
+        kn = tuneKNNClassifier(X, Y)
+        ken, kc = tuneEKNNClassifier(X, Y)
+        kcn = tuneKMeansClassifier(X, Y, kc)
