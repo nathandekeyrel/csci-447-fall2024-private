@@ -4,6 +4,7 @@ import training as tr
 import random
 import knn
 import editedKNN as eknn
+import evaluating as ev
 
 def kfold(X, Y, k, debug = False):
     #copy the vectors in D to a vector list Vs
@@ -45,19 +46,14 @@ def _crossvalidationC(i, X, Y, nClasses, k, cl):
         cl.edit(Xh, Yh)
     # get the predictions
     predictions = cl.predict(Xh, k)
-    # initialize the confusion matrix
-    cm = np.array([[0 for _ in range(nClasses)] for _ in range(nClasses)])
-    # generate the confusion matrix
-    for x, y in zip(predictions, Yh):
-        cm[x][y] += 1
-    # return the confusion matrix
-    return cm
+    # return the actual values and the predictions
+    return copy.copy(Yh), predictions
 
 def tenfoldcrossvalidationC(cl, X, Y, k):
     nClasses = np.max(Y) + 1
     X, Y = kfold(X, Y, 10)
-    cms = [_crossvalidationC(i, X, Y, nClasses, k, cl) for i in range(10)]
-    return cms
+    results = [_crossvalidationC(i, X, Y, nClasses, k, cl) for i in range(10)]
+    return results
 
 def _crossvalidationR(i, X, Y, sig, k, re, e=0):
     # copy the X and Y arrays to keep the sample data intact
@@ -77,7 +73,7 @@ def _crossvalidationR(i, X, Y, sig, k, re, e=0):
     # get the predictions
     predictions = re.predict(Xh, k, sig)
     # return a tuple containing the hold out target values and the predictions
-    return (copy.copy(Yh), predictions)
+    return copy.copy(Yh), predictions
 
 def tenfoldcrossvalidationR(re, X, Y, k, sig, e=0):
     X, Y = kfold(X, Y, 10)
