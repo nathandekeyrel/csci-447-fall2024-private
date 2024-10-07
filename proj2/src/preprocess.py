@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.preprocessing import StandardScaler, OneHotEncoder, Normalizer
 
 
 def preprocess_data(filepath):
@@ -51,7 +51,7 @@ def _preprocess_cancer(filepath):
     # drop 'Id' (useless) and 'Class' (target)
     X = df.drop(['Id', 'Class'], axis=1)
 
-    scaler = StandardScaler()
+    scaler = Normalizer()
     X = scaler.fit_transform(X)
 
     return X, y
@@ -76,7 +76,7 @@ def _preprocess_glass(filepath):
     X = df.drop(['Id', 'Type'], axis=1)
 
     # the other classes are numeric, standardize
-    scalar = StandardScaler()
+    scalar = Normalizer()
     X = scalar.fit_transform(X)
 
     return X, y
@@ -148,7 +148,7 @@ def _preprocess_abalone(filepath):
     ], axis=1)
 
     # standardize numerical values
-    scaler = StandardScaler()
+    scaler = Normalizer()
     X[numeric_columns] = scaler.fit_transform(X[numeric_columns])
 
     return X.values, y
@@ -188,7 +188,7 @@ def _preprocess_fires(filepath):
     ], axis=1)
 
     # standardize numerical values
-    scaler = StandardScaler()
+    scaler = Normalizer()
     X[numeric_columns] = scaler.fit_transform(X[numeric_columns])
 
     return X.values, y
@@ -215,7 +215,7 @@ def _preprocess_computer(filepath):
     X = df[numeric_columns]
 
     # standardize continuous values
-    scaler = StandardScaler()
+    scaler = Normalizer()
     X = pd.DataFrame(scaler.fit_transform(X), columns=numeric_columns)
 
-    return X, y
+    return X.values, y

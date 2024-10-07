@@ -46,6 +46,7 @@ class EKNNErrRegression:
         self.mark = np.repeat([True], len(self.X))
 
     def edit(self, Xt, Yt, sig, e):
+        self.mark = np.repeat([True], len(self.X))
         q = qualityR(self, Xt, Yt, sig)
         qd = q
         while qd <= q:

@@ -7,6 +7,7 @@ import tenfoldcv as kfxv
 import numpy as np
 import tuning as tu
 import preprocess as prpr
+import evaluating as ev
 
 n = 100
 
@@ -35,7 +36,7 @@ cl = knn.KNNClassifier()
 cms = kfxv.tenfoldcrossvalidationC(cl, X, Y, 5)
 print(cms) """
 
-X, Y = prpr.preprocess_data("data/abalone.data")
+""" X, Y = prpr.preprocess_data("data/abalone.data")
 
 Xs, Ys = kfxv.kfold(X, Y, 10)
 Xh = Xs.pop(0)
@@ -60,8 +61,9 @@ print(str(time4 - time3))
 time4 = t.time()
 results = kfxv.tenfoldcrossvalidationR(re, X, Y, 5, 2, e=5)
 time5 = t.time()
-print(str(time5 - time4))
-""" #generate list of n vectors with random x and y values, and the associated class
+print(str(time5 - time4)) """
+
+#generate list of n vectors with random x and y values, and the associated class
 for i in range(n):
   x = r.random()
   y = r.random()
@@ -70,8 +72,24 @@ for i in range(n):
   X.append([x, y])
   Y.append(c)
 
-k = tu.tuneKNNClassifier(X, Y)
-print(k) """
+X, Y = prpr.preprocess_data("data/abalone.data")
+
+time1 = t.time()
+k, sig, e = tu.tuneEKNNRegression(X, Y)
+time2 = t.time()
+print(time2 - time1)
+print(k, sig)
+Xs, Ys, X_test, Y_test = tu.generateStartingTestData(X, Y)
+Xs = kfxv.mergedata(Xs)
+Ys = kfxv.mergedata(Ys)
+re = eknn.EKNNErrRegression()
+re.fit(Xs, Ys)
+re.edit(X_test, Y_test, sig, e)
+y_pred = re.predict(X_test, k, sig)
+r2 = tu.r2_score(Y_test, y_pred)
+mse = ev.mse(Y_test, y_pred)
+print(r2)
+print(mse)
 
 """ X = np.array([i for i in range(n)])
 Y = np.array([(r.random() * np.sqrt(n)) + (i - np.sqrt(n) / 2) for i in range(n)])
