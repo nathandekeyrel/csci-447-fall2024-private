@@ -1,56 +1,141 @@
 import tenfoldcv as kfxv
 import numpy as np
 import knn
+import editedKNN as eknn
+import kMeans as km
 import copy
+import evaluating as ev
+from sklearn.metrics import r2_score
 
-NUMGUESSES = 100
+ks = [1, 3, 5, 7, 13, 15]
+sigs = [0.25, 0.5, 1, 2]
+es = [0.25, 0.5, 1]
 
-def tuneKNNRegression(X, c):
-  
-    pass
+def generateStartingTestData(X, Y):
+    # copy the data to prevent mutating the source
+    X = copy.copy(X)
+    Y = copy.copy(Y)
+    # get the test set out of the data
+    Xs, Ys = kfxv.kfold(X, Y, 10)
+    X_test = np.array(Xs.pop(0))
+    Y_test = np.array(Ys.pop(0))
+    # generate the folds for tuning
+    X = kfxv.mergedata(Xs)
+    Y = kfxv.mergedata(Ys)
+    Xs, Ys = kfxv.kfold(X, Y, 10)
+    return Xs, Ys, X_test, Y_test
 
-def tuneKNNClassifier(X, c):
-    '''
-    : param X : the processed data
-    : param c : the list of classes associated with that data
-    '''
-    # make ten folds
-    X = kfxv.kfold(X, 10)
-    # set aside one fold for tuning
-    tuningSet = X.pop(0)
-    # merge nine of them
-    X = kfxv.mergedata(X)
-    # make ten folds from the merged data
-    X = kfxv.kfold(X, 10)
-    # For the KNN classifier, there is one hyperpameter which we will initialize as an empty list for averaging later
-    kns = []
-    # tune the hyper parameters
+def generateTrainingData(Xs, Ys, i):
+    Xs = copy.copy(Xs)
+    Ys = copy.copy(Ys)
+    Xs.pop(i)
+    Ys.pop(i)
+    X_train = kfxv.mergedata(Xs)
+    Y_train = kfxv.mergedata(Ys)
+    return X_train, Y_train
+
+def tuneKNNClassifier(X, Y):
+    # generate the test sets and the folds
+    Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
+    cl = knn.KNNClassifier()
+    perf = [0] * len(ks)
     for i in range(10):
-        # make a copy to preserve X
-        Xc = copy.deepcopy(X)
-        # We remove the fold at index and use it for our hold-out
-        h = Xc.pop(i)
-        #merge the data
-        Xc = kfxv.mergedata(Xc)
-        # We'll generate a list of kn values to test against for this iteration
-        knt = np.random.randint(1, max(int(np.sqrt(len(Xc))), 2), NUMGUESSES)
-        # initialize the classifier
-        classifier = knn.KNNClassifier(Xc)
-        # initialize an array to store the 0-1 results for each kn value in knt
-        zeroones = []
-        # iterate each kn value in the knt list
-        for kn in knt:
-            # check the performance of the kn
-            for x in h:
-                #initialize the zero one results to 0
-                zeroone = 0
-                # store the predicted class into c
-                c = classifier.classify(x, kn)
-                # compare predicted class to the actual and increment the results based on the outcome
-                zeroone += 1 if not c == x[-1] else 0
-            # once loop is done, append the zero one results to the list
-            zeroones.append(zeroone / len(h))
-        # append the kns list with the best performing kn value for the training set
-        kns.append(knt[zeroones.index(min(zeroones))])
-    # return the mean of the selected k values
-    return int(np.mean(kns) + 0.5)
+        X_train, Y_train = generateTrainingData(Xs, Ys, i)
+        cl.fit(X_train, Y_train)
+        for j in range(len(ks)):
+            predictions = cl.predict(X_test, ks[j])
+            perf[j] += ev.zero_one_loss(Y_test, predictions)
+    best = min(perf)
+    index = perf.index(best)
+    return ks[index]
+
+def tuneKNNRegression(X, Y):
+    Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
+    cl = knn.KNNRegression()
+    perf = [[0] * len(ks) for _ in range(len(sigs))]
+    for i in range(10):
+        X_train, Y_train = generateTrainingData(Xs, Ys, i)
+        cl.fit(X_train, Y_train)
+        for j in range(len(ks)):
+            for k in range(len(sigs)):
+                predictions = cl.predict(X_test, ks[j], sig=sigs[k])
+                perf[k][j] += r2_score(Y_test, predictions)
+    internal_arr_maxs = [max(perf[i]) for i in range(len(sigs))]
+    max_r2 = max(internal_arr_maxs)
+    sig_i = internal_arr_maxs.index(max_r2)
+    k_i = perf[sig_i].index(max_r2)
+    return ks[k_i], sigs[sig_i]
+
+def tuneEKNNClassifier(X, Y):
+    Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
+    cl = eknn.EKNNErrClassifier()
+    perf = [0] * len(ks)
+    for i in range(10):
+        X_train, Y_train = generateTrainingData(Xs, Ys, i)
+        cl.fit(X_train, Y_train)
+        cl.edit(X_test, Y_test)
+        for j in range(len(ks)):
+            predictions = cl.predict(X_test, ks[j])
+            perf[j] += ev.zero_one_loss(Y_test, predictions)
+    best = min(perf)
+    index = perf.index(best)
+    return ks[index], cl.numberOfExamples()
+
+def tuneEKNNRegression(X, Y):
+    Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
+    cl = eknn.EKNNErrRegression()
+    this_es = [es[i] * (np.max(Y) - np.min(Y)) for i in range(len(es))]
+    perf = [[[0] * len(ks) for _ in range(len(sigs))] for _ in range(len(es))]
+    for i in range(10):
+        X_train, Y_train = generateTrainingData(Xs, Ys, i)
+        cl.fit(X_train, Y_train)
+        for j in range(len(es)):
+            cl.edit(X_test, Y_test, 1, this_es[j])
+            for k in range(len(ks)):
+                for l in range(len(sigs)):
+                    predictions = cl.predict(X_test, ks[k], sigs[l])
+                    perf[j][l][k] += r2_score(Y_test, predictions)
+    max_val_mat = [[max(perf[i][j]) for i in range(len(es))] for j in range(len(sigs))]
+    max_val_arr = [max(max_val_mat[i]) for i in range(len(sigs))]
+    max_val = max(max_val_arr)
+    sig_i = max_val_arr.index(max_val)
+    e_i = max_val_mat[sig_i].index(max_val)
+    k_i = perf[e_i][sig_i].index(max_val)
+    return ks[k_i], sigs[sig_i], this_es[e_i], cl.numberOfExamples()
+
+def tuneKMeansClassifier(X, Y, kc):
+    Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
+    kmeans = km.KMeans(kc)
+    perf = [0] * len(ks)
+    for i in range(10):
+        X_train, Y_train = generateTrainingData(Xs, Ys, i)
+        kmeans.fit(X_train, Y_train)
+        rX, rY = kmeans.get_reduced_dataset()
+        cl = knn.KNNClassifier()
+        cl.fit(rX, rY)
+        for j in range(len(ks)):
+            predictions = cl.predict(X_test, ks[j])
+            perf[j] += ev.zero_one_loss(Y_test, predictions)
+    min_val = min(perf)
+    k_i = perf.index(min_val)
+    return ks[k_i]
+
+def tuneKMeansRegression(X, Y, kc):
+    Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
+    kmeans = km.KMeans(kc)
+    perf = [[0] * len(ks) for _ in range(len(sigs))]
+    for i in range(10):
+        X_train, Y_train = generateTrainingData(Xs, Ys, i)
+        kmeans.fit(X_train, Y_train)
+        rX, rY = kmeans.get_reduced_dataset()
+        cl = knn.KNNRegression()
+        cl.fit(rX, rY)
+        for j in range(len(sigs)):
+            for k in range(len(ks)):
+                predictions = cl.predict(X_test, ks[k], sigs[j])
+                perf[j][k] += r2_score(Y_test, predictions)
+    max_arr = [max(perf[i]) for i in range(len(sigs))]
+    max_val = max(max_arr)
+    sig_i = max_arr.index(max_val)
+    k_i = perf[sig_i].index(max_arr)
+    return ks[k_i], sigs[sig_i]

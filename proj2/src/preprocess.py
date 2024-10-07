@@ -1,14 +1,6 @@
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.feature_selection import mutual_info_classif
-
-"""
-NOTE: this does rely on some sklearn methods. I will talk to either the prof or TA (whichever is in class) to make sure
-it is ok to use them in this sense. If not, the majority of the datasets won't need feature selection (assumption)
-so I will figure out how to do it from scratch for the forest-fires dataset if needed. Because of how explicit the names
-file was about feature correlation, I think it's worth checking for that dataset.
-"""
+from sklearn.preprocessing import StandardScaler, OneHotEncoder, Normalizer
 
 
 def preprocess_data(filepath):
@@ -59,10 +51,10 @@ def _preprocess_cancer(filepath):
     # drop 'Id' (useless) and 'Class' (target)
     X = df.drop(['Id', 'Class'], axis=1)
 
-    scaler = StandardScaler()
+    scaler = Normalizer()
     X = scaler.fit_transform(X)
 
-    return X.values, y
+    return X, y
 
 
 def _preprocess_glass(filepath):
@@ -76,18 +68,18 @@ def _preprocess_glass(filepath):
     columns = ['Id', 'RI', 'Na', 'Mg', 'Al', 'Si', 'K', 'Ca', 'Ba', 'Fe', 'Type']
     df.columns = columns
 
+    # target is 'Type' is valued from 1-7 (integers)
+    # "4 vehicle_windows_non_float_processed (none in this database)" - from names
+    y = df['Type'].values
+
     # drop id (useless) and type (the target)
     X = df.drop(['Id', 'Type'], axis=1)
 
-    # Target is 'Type' is valued from 1-7 (integers)
-    # 4 vehicle_windows_non_float_processed (none in this database)
-    y = df['Type'].values
-
     # the other classes are numeric, standardize
-    scalar = StandardScaler()
+    scalar = Normalizer()
     X = scalar.fit_transform(X)
 
-    return X.values, y
+    return X, y
 
 
 def _preprocess_soybean(filepath):
@@ -106,12 +98,6 @@ def _preprocess_soybean(filepath):
                'Shriveling', 'Roots', 'Class']
     df.columns = columns
 
-    # these columns either have values of all 0 or all 1. depending on outcome we may or may not keep this.
-    columns_to_drop = [
-        'Date', 'Temp', 'Leafspots Halo', 'Leaf Shread', 'Leaf Malf', 'Leaf Mild',
-        'Stem', 'Seed', 'Mold Growth', 'Seed Discolor', 'Seed Size', 'Shriveling'
-    ]
-
     class_mapping = {
         'D1': 0,
         'D2': 1,
@@ -121,19 +107,8 @@ def _preprocess_soybean(filepath):
 
     y = df['Class'].map(class_mapping).values  # target is 'Class'
 
-    # temporary to check feature importance
     X = df.drop('Class', axis=1)
-
-    # check feature importance
-    mi_scores = mutual_info_classif(X, y)
-    mi_scores = pd.Series(mi_scores, index=X.columns)
-    print("\nFeature importance:")
-    print(mi_scores.sort_values(ascending=False))
-
-    # final X will be determined by mi_scores output.
-
-    # X = df.drop([columns_to_drop, 'Class'], axis=1)
-    encoder = OneHotEncoder(handle_unknown='ignore')
+    encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
     X_encoded = encoder.fit_transform(X)
 
     feature_names = encoder.get_feature_names_out(X.columns)
@@ -154,11 +129,11 @@ def _preprocess_abalone(filepath):
                'Shucked Weight', 'Viscera Weight', 'Shell Weight', 'Rings']
     df.columns = columns
 
-    # Target: 'Rings' --> Age = Rings + 1.5
-    y = df['Rings'].values  # Target is 'Rings'
+    # target: 'Rings'
+    y = df['Rings'].values
 
     # one-hot encode only the 'Sex' column
-    encoder = OneHotEncoder(handle_unknown='ignore')
+    encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
     sex_encoded = encoder.fit_transform(df[['Sex']])
     sex_column_names = encoder.get_feature_names_out(['Sex'])
 
@@ -172,7 +147,8 @@ def _preprocess_abalone(filepath):
         df[numeric_columns]
     ], axis=1)
 
-    scaler = StandardScaler()
+    # standardize numerical values
+    scaler = Normalizer()
     X[numeric_columns] = scaler.fit_transform(X[numeric_columns])
 
     return X.values, y
@@ -199,25 +175,21 @@ def _preprocess_fires(filepath):
     # documentation - https://numpy.org/doc/2.0/reference/generated/numpy.log1p.html
 
     # one-hot encode 'month' and 'day'
-    encoder = OneHotEncoder(handle_unknown='ignore')
+    encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
     categorical_encoded = encoder.fit_transform(df[['month', 'day']])
     categorical_column_names = encoder.get_feature_names_out(['month', 'day'])
 
     numeric_columns = df.drop(['month', 'day', 'area'], axis=1).columns
 
+    # new datasets with encoded month and day
     X = pd.concat([
         pd.DataFrame(categorical_encoded, columns=categorical_column_names),
         df[numeric_columns]
     ], axis=1)
 
-    scaler = StandardScaler()
+    # standardize numerical values
+    scaler = Normalizer()
     X[numeric_columns] = scaler.fit_transform(X[numeric_columns])
-
-    # Note: several of the attributes may be correlated, thus it makes sense to apply some sort of feature selection.
-    mi_scores = mutual_info_classif(X, y)
-    mi_scores = pd.Series(mi_scores, index=X.columns)
-    print("\nFeature importance:")
-    print(mi_scores.sort_values(ascending=False))
 
     return X.values, y
 
@@ -236,13 +208,14 @@ def _preprocess_computer(filepath):
 
     y = df['PRP'].values  # Target: 'PRP', continuously valued
 
-    # drop vendor name, model name, and erp. they don't actually tell us anything about the computer
-    # also dropped PRP as it's the target.
+    # I still dropped names and erp because I don't think there are value in these columns
+    # if you want me to keep them, we would need to encode the names. ERP is their model's prediction,
+    # so I think it might cause overfitting problems
     numeric_columns = df.drop(['Vendor Name', 'Model Name', 'PRP', 'ERP'], axis=1).columns
     X = df[numeric_columns]
 
     # standardize continuous values
-    scaler = StandardScaler()
+    scaler = Normalizer()
     X = pd.DataFrame(scaler.fit_transform(X), columns=numeric_columns)
 
     return X.values, y
