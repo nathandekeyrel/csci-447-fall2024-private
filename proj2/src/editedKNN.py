@@ -35,6 +35,9 @@ class EKNNErrClassifier:
 
     def _predict(self, x, k):
         return self.cl._predict(x, k)
+    
+    def numberOfExamples(self):
+        return self.mark.sum()
 
 class EKNNErrRegression:
     def __init__(self):
@@ -79,6 +82,9 @@ class EKNNErrRegression:
         s = sum([nns[i] * weights[i] for i in range(len(indices))])
         prediction = s / w
         return prediction
+    
+    def numberOfExamples(self):
+        return self.mark.sum()
 
 
 

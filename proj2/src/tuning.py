@@ -79,7 +79,7 @@ def tuneEKNNClassifier(X, Y):
             perf[j] += ev.zero_one_loss(Y_test, predictions)
     best = min(perf)
     index = perf.index(best)
-    return ks[index]
+    return ks[index], cl.numberOfExamples()
 
 def tuneEKNNRegression(X, Y):
     Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
@@ -101,7 +101,7 @@ def tuneEKNNRegression(X, Y):
     sig_i = max_val_arr.index(max_val)
     e_i = max_val_mat[sig_i].index(max_val)
     k_i = perf[e_i][sig_i].index(max_val)
-    return ks[k_i], sigs[sig_i], this_es[e_i]
+    return ks[k_i], sigs[sig_i], this_es[e_i], cl.numberOfExamples()
 
 def tuneKMeansClassifier():
     pass

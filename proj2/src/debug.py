@@ -36,8 +36,8 @@ cl = knn.KNNClassifier()
 cms = kfxv.tenfoldcrossvalidationC(cl, X, Y, 5)
 print(cms) """
 
-""" X, Y = prpr.preprocess_data("data/abalone.data")
-
+X, Y = prpr.preprocess_data("data/abalone.data")
+print(len(Y))
 Xs, Ys = kfxv.kfold(X, Y, 10)
 Xh = Xs.pop(0)
 Yh = Ys.pop(0)
@@ -51,28 +51,22 @@ re.fit(Xs, Ys)
 time2 = t.time()
 print(str(time2 - time1))
 time2 = t.time()
-# re.edit(Xh, Yh, 2, 5)
+re.edit(Xh, Yh, 0.25, (max(Y) - min(Y)) * 0.25)
 time3 = t.time()
 print(str(time3 - time2))
 time3 = t.time()
-# re.predict(Xh, 5, 2)
+pred = re.predict(Xh, 13, 0.25)
 time4 = t.time()
 print(str(time4 - time3))
 time4 = t.time()
-results = kfxv.tenfoldcrossvalidationR(re, X, Y, 5, 2, e=5)
+# results = kfxv.tenfoldcrossvalidationR(re, X, Y, 5, 2, e=5)
 time5 = t.time()
-print(str(time5 - time4)) """
+print(str(time5 - time4))
+print(re.mark.sum())
+print(tu.r2_score(Yh, pred))
 
-#generate list of n vectors with random x and y values, and the associated class
-for i in range(n):
-  x = r.random()
-  y = r.random()
-  #classify those items as group 0 if x > y, and group 1 if x <= y
-  c = 0 if x > y else 1
-  X.append([x, y])
-  Y.append(c)
 
-X, Y = prpr.preprocess_data("data/abalone.data")
+""" X, Y = prpr.preprocess_data("data/abalone.data")
 
 time1 = t.time()
 k, sig, e = tu.tuneEKNNRegression(X, Y)
@@ -89,7 +83,7 @@ y_pred = re.predict(X_test, k, sig)
 r2 = tu.r2_score(Y_test, y_pred)
 mse = ev.mse(Y_test, y_pred)
 print(r2)
-print(mse)
+print(mse) """
 
 """ X = np.array([i for i in range(n)])
 Y = np.array([(r.random() * np.sqrt(n)) + (i - np.sqrt(n) / 2) for i in range(n)])
