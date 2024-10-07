@@ -12,7 +12,7 @@ class KNNClassifier:
         self.y = y
     
     def predict(self, X, k):
-        return [self._predict(x, k) for x in X]
+        return np.array([self._predict(x, k) for x in X])
 
     def _predict(self, x, k):
         distances = [euclidianDistance(x, xt) for xt in self.X]

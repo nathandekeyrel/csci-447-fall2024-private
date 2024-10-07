@@ -63,8 +63,8 @@ def _crossvalidationR(i, X, Y, sig, k, re, e=0):
     Xh = np.array(Xc.pop(i))
     Yh = np.array(Yc.pop(i))
     # merge the remaining data for the training set
-    Xt = np.array(mergedata(Xc))
-    Yt = np.array(mergedata(Yc))
+    Xt = mergedata(Xc)
+    Yt = mergedata(Yc)
     # fit the model to the training data
     re.fit(Xt, Yt)
     # if there is an edit method, run that using the hold out set
@@ -88,4 +88,4 @@ def mergedata(Ds):
         # extend the merged data by the vectors in D
         Dm.extend(D)
     # return the vector list that resulted from the execution of this function
-    return Dm
+    return np.array(Dm)

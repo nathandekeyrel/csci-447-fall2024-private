@@ -19,6 +19,15 @@ X = []
 Y = []
 
 """ X, Y = prpr.preprocess_data("data/breast-cancer-wisconsin.data")
+Xs, Ys, X_test, Y_test = tu.generateStartingTestData(X, Y)
+Xs = kfxv.mergedata(Xs)
+Ys = kfxv.mergedata(Ys)
+cl = km.KMeans(100)
+cl.fit(Xs, Ys)
+print(cl.predict(X_test))
+print() """
+
+""" X, Y = prpr.preprocess_data("data/breast-cancer-wisconsin.data")
 
 k = tu.tuneKNNClassifier(X, Y)
 print(k)
@@ -36,7 +45,7 @@ cl = knn.KNNClassifier()
 cms = kfxv.tenfoldcrossvalidationC(cl, X, Y, 5)
 print(cms) """
 
-X, Y = prpr.preprocess_data("data/abalone.data")
+X, Y = prpr.preprocess_data("data/breast-cancer-wisconsin.data")
 print(len(Y))
 Xs, Ys = kfxv.kfold(X, Y, 10)
 Xh = Xs.pop(0)
@@ -46,16 +55,19 @@ Ys = kfxv.mergedata(Ys)
 
 time1 = t.time()
 # re = knn.KNNRegression()
-re = eknn.EKNNErrRegression()
+# re = eknn.EKNNErrRegression()
+re = eknn.EKNNErrClassifier()
 re.fit(Xs, Ys)
 time2 = t.time()
 print(str(time2 - time1))
 time2 = t.time()
-re.edit(Xh, Yh, 0.25, (max(Y) - min(Y)) * 0.25)
+# re.edit(Xh, Yh, 1, (max(Y) - min(Y)) * 0.25)
+re.edit(Xh, Yh)
 time3 = t.time()
 print(str(time3 - time2))
 time3 = t.time()
-pred = re.predict(Xh, 13, 0.25)
+# pred = re.predict(Xh, 13, 0.25)
+pred = re.predict(Xh, 5)
 time4 = t.time()
 print(str(time4 - time3))
 time4 = t.time()
@@ -63,7 +75,8 @@ time4 = t.time()
 time5 = t.time()
 print(str(time5 - time4))
 print(re.mark.sum())
-print(tu.r2_score(Yh, pred))
+# print(tu.r2_score(Yh, pred))
+print(ev.zero_one_loss(np.array(Yh), np.array(pred)))
 
 
 """ X, Y = prpr.preprocess_data("data/abalone.data")

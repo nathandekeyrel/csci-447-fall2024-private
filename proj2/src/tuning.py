@@ -7,7 +7,7 @@ import copy
 import evaluating as ev
 from sklearn.metrics import r2_score
 
-ks = [1, 3, 5, 7, 13]
+ks = [1, 3, 5, 7, 13, 15]
 sigs = [0.25, 0.5, 1, 2]
 es = [0.25, 0.5, 1]
 
@@ -103,8 +103,39 @@ def tuneEKNNRegression(X, Y):
     k_i = perf[e_i][sig_i].index(max_val)
     return ks[k_i], sigs[sig_i], this_es[e_i], cl.numberOfExamples()
 
-def tuneKMeansClassifier():
-    pass
+def tuneKMeansClassifier(X, Y, kc):
+    Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
+    kmeans = km.KMeans(kc)
+    perf = [0] * len(ks)
+    for i in range(10):
+        X_train, Y_train = generateTrainingData(Xs, Ys, i)
+        kmeans.fit(X_train, Y_train)
+        rX, rY = kmeans.get_reduced_dataset()
+        cl = knn.KNNClassifier()
+        cl.fit(rX, rY)
+        for j in range(len(ks)):
+            predictions = cl.predict(X_test, ks[j])
+            perf[j] += ev.zero_one_loss(Y_test, predictions)
+    min_val = min(perf)
+    k_i = perf.index(min_val)
+    return ks[k_i]
 
-def tuneKMeansRegression():
-    pass
+def tuneKMeansRegression(X, Y, kc):
+    Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
+    kmeans = km.KMeans(kc)
+    perf = [[0] * len(ks) for _ in range(len(sigs))]
+    for i in range(10):
+        X_train, Y_train = generateTrainingData(Xs, Ys, i)
+        kmeans.fit(X_train, Y_train)
+        rX, rY = kmeans.get_reduced_dataset()
+        cl = knn.KNNRegression()
+        cl.fit(rX, rY)
+        for j in range(len(sigs)):
+            for k in range(len(ks)):
+                predictions = cl.predict(X_test, ks[k], sigs[j])
+                perf[j][k] += r2_score(Y_test, predictions)
+    max_arr = [max(perf[i]) for i in range(len(sigs))]
+    max_val = max(max_arr)
+    sig_i = max_arr.index(max_val)
+    k_i = perf[sig_i].index(max_arr)
+    return ks[k_i], sigs[sig_i]
