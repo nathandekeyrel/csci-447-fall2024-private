@@ -5,8 +5,10 @@ import random as r
 import time as t
 import tenfoldcv as kfxv
 import numpy as np
-#import tuning as tu
+import tuning as tu
 import preprocess as prpr
+
+n = 100
 
 r.seed(t.time())
 lc: list[list] = []
@@ -16,17 +18,50 @@ X = []
 Y = []
 
 """ X, Y = prpr.preprocess_data("data/breast-cancer-wisconsin.data")
+
+k = tu.tuneKNNClassifier(X, Y)
+print(k)
+cl = knn.KNNClassifier()
+cms = kfxv.tenfoldcrossvalidationC(cl, X, Y, k)
+print(cms) """
+
+""" X, Y = prpr.preprocess_data("data/soybean-small.data")
+
+k = tu.tuneKNNClassifier(X, Y)
+print(k) """
+
+""" X, Y = prpr.preprocess_data("data/breast-cancer-wisconsin.data")
 cl = knn.KNNClassifier()
 cms = kfxv.tenfoldcrossvalidationC(cl, X, Y, 5)
-print(cms)
+print(cms) """
 
-X, Y = prpr.preprocess_data("data/machine.data")
-re = knn.KNNRegression()
-mses = kfxv.tenfoldcrossvalidationR(re, X, Y, 3, 10)
-print(mses) """
+X, Y = prpr.preprocess_data("data/abalone.data")
 
+Xs, Ys = kfxv.kfold(X, Y, 10)
+Xh = Xs.pop(0)
+Yh = Ys.pop(0)
+Xs = kfxv.mergedata(Xs)
+Ys = kfxv.mergedata(Ys)
+
+time1 = t.time()
+# re = knn.KNNRegression()
+re = eknn.EKNNErrRegression()
+re.fit(Xs, Ys)
+time2 = t.time()
+print(str(time2 - time1))
+time2 = t.time()
+# re.edit(Xh, Yh, 2, 5)
+time3 = t.time()
+print(str(time3 - time2))
+time3 = t.time()
+# re.predict(Xh, 5, 2)
+time4 = t.time()
+print(str(time4 - time3))
+time4 = t.time()
+results = kfxv.tenfoldcrossvalidationR(re, X, Y, 5, 2, e=5)
+time5 = t.time()
+print(str(time5 - time4))
 """ #generate list of n vectors with random x and y values, and the associated class
-n = 100
 for i in range(n):
   x = r.random()
   y = r.random()
@@ -35,16 +70,23 @@ for i in range(n):
   X.append([x, y])
   Y.append(c)
 
+k = tu.tuneKNNClassifier(X, Y)
+print(k) """
+
+""" X = np.array([i for i in range(n)])
+Y = np.array([(r.random() * np.sqrt(n)) + (i - np.sqrt(n) / 2) for i in range(n)])
+
 Xs, Ys = kfxv.kfold(X, Y, 10)
-Xh = np.array(X.pop(0))
-Yh = np.array(Y.pop(0))
+Xh = np.array(Xs.pop(0))
+Yh = np.array(Ys.pop(0))
 Xt = np.array(kfxv.mergedata(Xs))
 Yt = np.array(kfxv.mergedata(Ys))
 
-classifier = km.KMeans(10)
+classifier = km.KMeans(2, 100)
 classifier.fit(Xt, Yt)
 results = classifier.predict(Xh)
-print((Yt, results)) """
+# results = classifier.get_reduced_dataset()
+print((Yh, results)) """
 
 """ n = 100
 X = np.array([i for i in range(n)])
@@ -81,4 +123,5 @@ print(np.sqrt(np.sum([(x - y) ** 2 for x, y in zip(xs, ys)]))) """
 
 paths = ["data/abalone.data", "data/breast-cancer-wisconsin.data", "data/forestfires.csv", "data/glass.data", "data/machine.data", "data/soybean-small.data"]
 for path in paths:
-  prpr.preprocess_data(path)
+  X, Y = prpr.preprocess_data(path)
+  

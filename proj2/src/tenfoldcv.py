@@ -81,7 +81,7 @@ def _crossvalidationR(i, X, Y, sig, k, re, e=0):
 
 def tenfoldcrossvalidationR(re, X, Y, k, sig, e=0):
     X, Y = kfold(X, Y, 10)
-    results = [_crossvalidationR(i, X, Y, sig, k, re, e=0) for i in range(10)]
+    results = [_crossvalidationR(i, X, Y, sig, k, re, e) for i in range(10)]
     return results
 
 def mergedata(Ds):
