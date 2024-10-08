@@ -2,6 +2,7 @@ import knn
 import heapq as hq
 import numpy as np
 import copy
+import evaluating as ev
 
 class EKNNErrClassifier:
     def __init__(self):
@@ -10,39 +11,48 @@ class EKNNErrClassifier:
     def fit(self, X, Y):
         self.X = X
         self.Y = Y
+        self.size = len(self.X)
+        self.mark = np.repeat([True], self.size)
 
     def edit(self, Xt, Yt):
-        Xe = copy.copy(self.X)
-        Ye = copy.copy(self.Y)
-        self.cl = knn.KNNClassifier()
-        self.cl.fit(Xe, Ye)
-        q = quality(self.cl, Xt, Yt)
-        qd = q
-        while qd >= q:
-            delta = 0
-            i = 0
-            while i < len(Xe):
-                x = Xe[i]
-                y = Ye[i]
-                Xe = np.delete(Xe, i, 0)
-                Ye = np.delete(Ye, i, 0)
-                self.cl.fit(Xe, Ye)
-                p = self.cl._predict(x, 1)
-                if not p == y:
-                    delta += 1
+        q = quality(self, Xt, Yt) # quality before edit
+        qd = q # quality after edit
+        while qd >= q: 
+            changed = False
+            for i in range(self.size):
+                self.mark[i] = False
+                if not self._predict(self.X[i], 1) == self.Y[i]:
+                    if not changed:
+                        changed = True
                 else:
-                    Xe = np.insert(Xe, i, x, axis=0)
-                    Ye = np.insert(Ye, i, y, axis=0)
-                    i += 1
-            if delta == 0:
-                break
-            qd = quality(self.cl, Xt, Yt)
+                    self.mark[i] = True
+            if not changed:
+                return
+            q = qd
+            qd = quality(self, Xt, Yt)
 
     def predict(self, X, k):
-        return [self._predict(x, k) for x in X]
+        return np.array([self._predict(x, k) for x in X])
 
     def _predict(self, x, k):
-        return self.cl._predict(x, k)
+        distances = []
+        for i in range(len(self.X)):
+            if not self.mark[i]:
+                continue
+            distances.append(euclidianDistance(x, self.X[i]))
+        indices = np.argsort(distances)[:k]
+        votes = {}
+        for index in indices:
+            if self.Y[index] in votes:
+                votes[self.Y[index]] += 1
+            else:
+                votes.update({self.Y[index] : 1})
+        votes = list(votes.items())
+        votes.sort(key = lambda x : x[1])
+        return votes[0][0]
+    
+    def numberOfExamples(self):
+        return self.mark.sum()
 
 class EKNNErrRegression:
     def __init__(self):
@@ -51,56 +61,155 @@ class EKNNErrRegression:
     def fit(self, X, Y):
         self.X = X
         self.Y = Y
+        self.mark = np.repeat([True], len(self.X))
 
     def edit(self, Xt, Yt, sig, e):
-        Xe = copy.copy(self.X)
-        Ye = copy.copy(self.Y)
-        self.cl = knn.KNNRegression()
-        self.cl.fit(Xe, Ye)
-        q = qualityR(self.cl, Xt, Yt, sig)
+        self.mark = np.repeat([True], len(self.X))
+        q = qualityR(self, Xt, Yt, sig)
         qd = q
-        print(str(qd) + " <= " + str(q))
         while qd <= q:
-            delta = 0
-            i = 0
-            while i < len(Xe):
-                x = Xe[i]
-                y = Ye[i]
-                Xe = np.delete(Xe, i, 0)
-                Ye = np.delete(Ye, i, 0)
-                self.cl.fit(Xe, Ye)
-                p = self.cl._predict(x, 1, 1)
-                pe = np.abs(p - y)
-                if pe >= e:
-                    print("tossed data")
-                    delta += 1
+            changed = False
+            for i in range(len(self.X)):
+                self.mark[i] = False
+                if np.abs(self._predict(self.X[i], 1, 1) - self.Y[i]) >= e:
+                    if not changed:
+                        changed = True
                 else:
-                    print("kept data " + str(i) + " " + str(len(Xe)))
-                    Xe = np.insert(Xe, i, x, axis=0)
-                    Ye = np.insert(Ye, i, y, axis=0)
-                    i += 1
-            if delta == 0:
-                break
-            qd = qualityR(self.cl, Xt, Yt)
-            print(str(qd) + " <= " + str(q))
+                    self.mark[i] = True
+            if not changed:
+                return
+            q = qd
+            qd = qualityR(self, Xt, Yt, sig)
 
     def predict(self, X, k, sig):
-        return [self._predict(x, k, sig) for x in X]
+        return np.array([self._predict(x, k, sig) for x in X])
 
     def _predict(self, x, k, sig):
-        return self.cl._predict(x, k, sig)
+        distances = []
+        for i in range(len(self.X)):
+            if not self.mark[i]:
+                continue
+            distances.append(euclidianDistance(x, self.X[i]))
+        indices = np.argsort(distances)[:k]
+        weights = [RBFkernel(distances[i], sig) for i in indices]
+        w = sum(weights)
+        nns = [self.Y[i] for i in indices]
+        s = sum([nns[i] * weights[i] for i in range(len(indices))])
+        prediction = s / w
+        return prediction
+    
+    def numberOfExamples(self):
+        return self.mark.sum()
+
+class EKNNTrueClassifier:
+    def __init__(self):
+        pass
+
+    def fit(self, X, Y):
+        self.X = X
+        self.Y = Y
+        self.size = len(self.X)
+        self.mark = np.repeat([True], self.size)
+
+    def edit(self, Xt, Yt):
+        q = quality(self, Xt, Yt) # quality before edit
+        qd = q # quality after edit
+        while qd >= q: 
+            changed = False
+            for i in range(self.size):
+                self.mark[i] = False
+                if self._predict(self.X[i], 1) == self.Y[i]:
+                    if not changed:
+                        changed = True
+                else:
+                    self.mark[i] = True
+            if not changed:
+                return
+            q = qd
+            qd = quality(self, Xt, Yt)
+
+    def predict(self, X, k):
+        return np.array([self._predict(x, k) for x in X])
+
+    def _predict(self, x, k):
+        distances = []
+        for i in range(len(self.X)):
+            if not self.mark[i]:
+                continue
+            distances.append(euclidianDistance(x, self.X[i]))
+        indices = np.argsort(distances)[:k]
+        votes = {}
+        for index in indices:
+            if self.Y[index] in votes:
+                votes[self.Y[index]] += 1
+            else:
+                votes.update({self.Y[index] : 1})
+        votes = list(votes.items())
+        votes.sort(key = lambda x : x[1])
+        return votes[0][0]
+    
+    def numberOfExamples(self):
+        return self.mark.sum()
+
+class EKNNTrueRegression:
+    def __init__(self):
+        pass
+
+    def fit(self, X, Y):
+        self.X = X
+        self.Y = Y
+        self.mark = np.repeat([True], len(self.X))
+
+    def edit(self, Xt, Yt, sig, e):
+        self.mark = np.repeat([True], len(self.X))
+        q = qualityR(self, Xt, Yt, sig)
+        qd = q
+        while qd <= q:
+            changed = False
+            for i in range(len(self.X)):
+                self.mark[i] = False
+                if np.abs(self._predict(self.X[i], 1, 1) - self.Y[i]) <= e:
+                    if not changed:
+                        changed = True
+                else:
+                    self.mark[i] = True
+            if not changed:
+                return
+            q = qd
+            qd = qualityR(self, Xt, Yt, sig)
+
+    def predict(self, X, k, sig):
+        return np.array([self._predict(x, k, sig) for x in X])
+
+    def _predict(self, x, k, sig):
+        distances = []
+        for i in range(len(self.X)):
+            if not self.mark[i]:
+                continue
+            distances.append(euclidianDistance(x, self.X[i]))
+        indices = np.argsort(distances)[:k]
+        weights = [RBFkernel(distances[i], sig) for i in indices]
+        w = sum(weights)
+        nns = [self.Y[i] for i in indices]
+        s = sum([nns[i] * weights[i] for i in range(len(indices))])
+        prediction = s / w
+        return prediction
+    
+    def numberOfExamples(self):
+        return self.mark.sum()
+
+#radial basis function kernel
+def RBFkernel(distance, sig):
+    return np.exp(-(distance * distance) / (2 * sig * sig))
+
+# euclidian distance algorithm
+def euclidianDistance(x1, x2):
+    diff = x1 - x2
+    return np.sqrt(np.sum(diff * diff))
 
 def quality(M, Xt, Yt):
-    n = 0
-    d = 0
-    for x, y in zip(Xt, Yt):
-        d += 1
-        if M._predict(x, 1) == y:
-            n += 1
-    try:
-        r = n / d
-    except:
-        r = 1
+    pred = M.predict(Xt, 1)
+    r = 1 - ev.zero_one_loss(Yt, pred)
     return r
 
 

@@ -60,7 +60,6 @@ def main():
 
     # get reduced dataset
     cancer_reduced_X, cancer_reduced_y = kmeans.get_reduced_dataset()
-
     # train KNN on the reduced dataset
     cancer_knn = KNNClassifier()
     cancer_knn.fit(cancer_reduced_X, cancer_reduced_y)

@@ -4,8 +4,17 @@ import training as tr
 import random
 import knn
 import editedKNN as eknn
+import evaluating as ev
 
-def kfold(X, Y, k, debug = False):
+def kfold(X, Y, k):
+    """Stratify and break the data into k folds
+    
+    :param X: The feature vectors
+    :param Y: The target values
+    :param k: The number of folds
+    :return: Xs, Ys (list[list], list[list])
+        The folds of the feature vectors and their associated target values
+    """
     #copy the vectors in D to a vector list Vs
     Vs = list(zip(X, Y))
     #shuffle the vectors in Vs
@@ -29,44 +38,59 @@ def kfold(X, Y, k, debug = False):
     return Xs, Ys
 
 def _crossvalidationC(i, X, Y, nClasses, k, cl):
+    """Does cross validation on a single fold for a givven classifier
+
+    
+    """
+    # copy the X and Y arrays to keep the sample data intact
     Xc = copy.copy(X)
     Yc = copy.copy(Y)
+    # pop the ith element for the holdout set
     Xh = np.array(Xc.pop(i))
     Yh = np.array(Yc.pop(i))
-    X = np.array(mergedata(Xc))
-    Y = np.array(mergedata(Yc))
-    cl.fit(X, Y)
+    # merge the remaining data for the training set
+    Xt = np.array(mergedata(Xc))
+    Yt = np.array(mergedata(Yc))
+    # fit the model to the training data
+    cl.fit(Xt, Yt)
+    # if there is an edit method, run that using the hold out set
+    if hasattr(cl, 'edit') and callable(cl.edit):
+        cl.edit(Xh, Yh)
+    # get the predictions
     predictions = cl.predict(Xh, k)
-    cm = np.array([[0 for _ in range(nClasses)] for _ in range(nClasses)])
-    for x, y in zip(predictions, Yh):
-        cm[x][y] += 1
-    return cm
+    # return the actual values and the predictions
+    return copy.copy(Yh), predictions
 
 def tenfoldcrossvalidationC(cl, X, Y, k):
     nClasses = np.max(Y) + 1
     X, Y = kfold(X, Y, 10)
-    cms = [_crossvalidationC(i, X, Y, nClasses, k, cl) for i in range(10)]
-    return cms
+    results = [_crossvalidationC(i, X, Y, nClasses, k, cl) for i in range(10)]
+    return results
 
-def _crossvalidationR(i, X, Y, sig, k, re):
+def _crossvalidationR(i, X, Y, sig, k, re, e=0):
+    # copy the X and Y arrays to keep the sample data intact
     Xc = copy.copy(X)
     Yc = copy.copy(Y)
+    # pop the ith element for the holdout set
     Xh = np.array(Xc.pop(i))
     Yh = np.array(Yc.pop(i))
-    Xc = np.array(mergedata(Xc))
-    Yc = np.array(mergedata(Yc))
-    re.fit(Xc, Yc)
+    # merge the remaining data for the training set
+    Xt = mergedata(Xc)
+    Yt = mergedata(Yc)
+    # fit the model to the training data
+    re.fit(Xt, Yt)
+    # if there is an edit method, run that using the hold out set
+    if hasattr(re, 'edit') and callable(re.edit):
+        re.edit(Xh, Yh, sig, e)
+    # get the predictions
     predictions = re.predict(Xh, k, sig)
-    mse = []
-    for i in range(len(Yh)):
-        mse.append((predictions[i] - Yh[i]) ** 2)
-    mse = np.mean(mse)
-    return mse
+    # return a tuple containing the hold out target values and the predictions
+    return copy.copy(Yh), predictions
 
-def tenfoldcrossvalidationR(re, X, Y, k, sig):
+def tenfoldcrossvalidationR(re, X, Y, k, sig, e=0):
     X, Y = kfold(X, Y, 10)
-    mses = [_crossvalidationR(i, X, Y, sig, k, re) for i in range(10)]
-    return mses
+    results = [_crossvalidationR(i, X, Y, sig, k, re, e) for i in range(10)]
+    return results
 
 def mergedata(Ds):
     # initialize our list that represents the merged data
@@ -76,4 +100,4 @@ def mergedata(Ds):
         # extend the merged data by the vectors in D
         Dm.extend(D)
     # return the vector list that resulted from the execution of this function
-    return Dm
+    return np.array(Dm)

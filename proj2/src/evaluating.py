@@ -34,6 +34,7 @@ def zero_one_loss(y_true, y_pred):
     :return: float
         The fraction of misclassifications (float between 0 and 1).
     """
+    pre = (y_true != y_pred)
     metric = np.mean(y_true != y_pred)
     return metric
 

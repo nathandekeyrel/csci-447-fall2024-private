@@ -12,7 +12,7 @@ class KNNClassifier:
         self.y = y
     
     def predict(self, X, k):
-        return [self._predict(x, k) for x in X]
+        return np.array([self._predict(x, k) for x in X])
 
     def _predict(self, x, k):
         distances = [euclidianDistance(x, xt) for xt in self.X]
@@ -53,8 +53,9 @@ class KNNRegression:
 
 #radial basis function kernel
 def RBFkernel(distance, sig):
-    return np.exp(-(distance ** 2) / (2 * sig ** 2))
+    return np.exp(-(distance * distance) / (2 * sig * sig))
 
 # euclidian distance algorithm
 def euclidianDistance(x1, x2):
-    return np.sqrt(np.sum((x1 - x2) ** 2))
+    diff = x1 - x2
+    return np.sqrt(np.sum(diff * diff))
