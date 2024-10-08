@@ -4,6 +4,7 @@ import numpy as np
 import copy
 import evaluating as ev
 
+
 class EKNNErrClassifier:
     def __init__(self):
         pass
@@ -54,6 +55,7 @@ class EKNNErrClassifier:
     
     def numberOfExamples(self):
         return self.mark.sum()
+
 
 class EKNNErrRegression:
     def __init__(self):
@@ -208,6 +210,7 @@ def RBFkernel(distance, sig):
 def euclidianDistance(x1, x2):
     diff = x1 - x2
     return np.sqrt(np.sum(diff * diff))
+
 
 def quality(M, Xt, Yt):
     pred = M.predict(Xt, 1)

@@ -6,6 +6,7 @@ import knn
 import editedKNN as eknn
 import evaluating as ev
 
+
 def kfold(X, Y, k):
     """Stratify and break the data into k folds
     
@@ -15,16 +16,17 @@ def kfold(X, Y, k):
     :return: Xs, Ys (list[list], list[list])
         The folds of the feature vectors and their associated target values
     """
-    #copy the vectors in D to a vector list Vs
+    # copy the vectors in D to a vector list Vs
     Vs = list(zip(X, Y))
-    #shuffle the vectors in Vs
+    # shuffle the vectors in Vs
     random.shuffle(Vs)
-    #sort the vectors in Vs by their class. Since the sort is stable, the randomization introduced by the shuffle in the previous step will be preserved
+    # sort the vectors in Vs by their class. Since the sort is stable, the randomization
+    # introduced by the shuffle in the previous step will be preserved
     Vs.sort(key=lambda x: x[-1])
-    #initialize our list of vector lists Vss, which will represent the folds
+    # initialize our list of vector lists Vss, which will represent the folds
     Xs = [[] for _ in range(k)]
     Ys = [[] for _ in range(k)]
-    #iterate over the indices for each vector in Vs
+    # iterate over the indices for each vector in Vs
     for i in range(len(Vs)):
         '''
         In this loop we use the clock property of modulus arithmetic to create stratification in our data.
@@ -34,8 +36,9 @@ def kfold(X, Y, k):
         '''
         Xs[i % k].append(Vs[i][0])
         Ys[i % k].append(Vs[i][1])
-    #We return the list of lists produced by the instructions in this function
+    # We return the list of lists produced by the instructions in this function
     return Xs, Ys
+
 
 def _crossvalidationC(i, X, Y, nClasses, k, cl):
     """Does cross validation on a single fold for a given classifier
@@ -61,11 +64,13 @@ def _crossvalidationC(i, X, Y, nClasses, k, cl):
     # return the actual values and the predictions
     return copy.copy(Yh), predictions
 
+
 def tenfoldcrossvalidationC(cl, X, Y, k):
     nClasses = np.max(Y) + 1
     X, Y = kfold(X, Y, 10)
     results = [_crossvalidationC(i, X, Y, nClasses, k, cl) for i in range(10)]
     return results
+
 
 def _crossvalidationR(i, X, Y, sig, k, re, e=0):
     # copy the X and Y arrays to keep the sample data intact
@@ -87,10 +92,12 @@ def _crossvalidationR(i, X, Y, sig, k, re, e=0):
     # return a tuple containing the hold out target values and the predictions
     return copy.copy(Yh), predictions
 
+
 def tenfoldcrossvalidationR(re, X, Y, k, sig, e=0):
     X, Y = kfold(X, Y, 10)
     results = [_crossvalidationR(i, X, Y, sig, k, re, e) for i in range(10)]
     return results
+
 
 def mergedata(Ds):
     # initialize our list that represents the merged data
