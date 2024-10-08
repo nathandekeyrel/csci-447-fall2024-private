@@ -1,0 +1,4 @@
+file name, knn zero-one, enn zero-one, kmeans zero-one
+data/soybean-small.data,0.000000,0.705000,0.000000
+data/glass.data,0.307105,0.740000,0.280526
+data/breast-cancer-wisconsin.data,0.102644,0.369937,0.102380

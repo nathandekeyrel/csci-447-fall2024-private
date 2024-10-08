@@ -1,0 +1,4 @@
+filename,k value for knn,sig value for knn,k value for eknn,sig value for eknn,e value for eknn,k cluster for kmeans,k value for kmeans,sig value for kmeans
+data/machine.data,3,0.250000,5,0.250000,858,166,1,0.250000
+data/forestfires.csv,15,2.000000,13,1.000000,5,415,13,0.500000
+data/abalone.data,15,0.250000,15,2.000000,21,3379,15,0.250000

@@ -147,7 +147,7 @@ def tuneEverything(datadirectory : str):
     paths = [datadirectory + filenames[i] for i in range(6)]
     f = open(datadirectory + "tuned-classifier-values.csv", "w")
     f.write("filename,k value for knn,k value for eknn,k cluster for kmeans,k value for kmeans\n")
-    """ for i in range(3):
+    for i in range(3):
         path = paths[i]
         try:
             X, Y = pr.preprocess_data(path)
@@ -161,7 +161,7 @@ def tuneEverything(datadirectory : str):
         f.flush()
     f.close()
     f = open(datadirectory + "tuned-regressor-values.csv", "w")
-    f.write("filename,k value for knn,sig value for knn,k value for eknn,sig value for eknn,e value for eknn,k cluster for kmeans,k value for kmeans,sig value for kmeans\n") """
+    f.write("filename,k value for knn,sig value for knn,k value for eknn,sig value for eknn,e value for eknn,k cluster for kmeans,k value for kmeans,sig value for kmeans\n")
     
     for i in range(3, 6):
         path = paths[i]

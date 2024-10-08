@@ -1,0 +1,4 @@
+filename,k value for knn,k value for eknn,k cluster for kmeans,k value for kmeans
+data/soybean-small.data,1,1,9,1
+data/glass.data,1,1,59,1
+data/breast-cancer-wisconsin.data,1,1,361,1

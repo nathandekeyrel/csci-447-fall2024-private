@@ -38,7 +38,7 @@ def kfold(X, Y, k):
     return Xs, Ys
 
 def _crossvalidationC(i, X, Y, nClasses, k, cl):
-    """Does cross validation on a single fold for a givven classifier
+    """Does cross validation on a single fold for a given classifier
 
     
     """
@@ -57,7 +57,7 @@ def _crossvalidationC(i, X, Y, nClasses, k, cl):
     if hasattr(cl, 'edit') and callable(cl.edit):
         cl.edit(Xh, Yh)
     # get the predictions
-    predictions = cl.predict(Xh, k)
+    predictions = np.array(cl.predict(Xh, k))
     # return the actual values and the predictions
     return copy.copy(Yh), predictions
 
@@ -83,7 +83,7 @@ def _crossvalidationR(i, X, Y, sig, k, re, e=0):
     if hasattr(re, 'edit') and callable(re.edit):
         re.edit(Xh, Yh, sig, e)
     # get the predictions
-    predictions = re.predict(Xh, k, sig)
+    predictions = np.array(re.predict(Xh, k, sig))
     # return a tuple containing the hold out target values and the predictions
     return copy.copy(Yh), predictions
 

@@ -1,0 +1,4 @@
+file name, knn mse, enn mse, kmeans mse
+data/machine.data,12002.354176,28678.009856,13484.730956
+data/forestfires.csv,2.064641,2.130221,2.134161
+data/abalone.data,4.624192,5.227989,4.394198

@@ -70,7 +70,16 @@ def _preprocess_glass(filepath):
 
     # target is 'Type' is valued from 1-7 (integers)
     # "4 vehicle_windows_non_float_processed (none in this database)" - from names
-    y = df['Type'].values
+    
+    class_mapping = {
+        1: 0,
+        2: 1,
+        3: 2,
+        5: 3,
+        6: 4,
+        7: 5
+    }
+    y = df['Type'].map(class_mapping).values
 
     # drop id (useless) and type (the target)
     X = df.drop(['Id', 'Type'], axis=1)
