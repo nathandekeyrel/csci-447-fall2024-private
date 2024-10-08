@@ -15,6 +15,7 @@ class EKNNErrClassifier:
         self.mark = np.repeat([True], self.size)
 
     def edit(self, Xt, Yt):
+        self.mark = np.repeat([True], self.size)
         q = quality(self, Xt, Yt) # quality before edit
         qd = q # quality after edit
         while qd >= q: 
@@ -61,10 +62,11 @@ class EKNNErrRegression:
     def fit(self, X, Y):
         self.X = X
         self.Y = Y
-        self.mark = np.repeat([True], len(self.X))
+        self.size = len(self.X)
+        self.mark = np.repeat([True], self.size)
 
     def edit(self, Xt, Yt, sig, e):
-        self.mark = np.repeat([True], len(self.X))
+        self.mark = np.repeat([True], self.size)
         q = qualityR(self, Xt, Yt, sig)
         qd = q
         while qd <= q:

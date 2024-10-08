@@ -90,9 +90,9 @@ tu.tuneKMeansClassifier(X, Y, 10) """
 
 
 tu.tuneEverything("data/")
-tu.tuneEverything("data")
-tu.tuneEverything("../data/")
-tu.tuneEverything("../data")
+# X, Y = prpr.preprocess_data("data/machine.data")
+# k, sig, e, kc = tu.tuneEKNNRegression(X, Y)
+# print(kc)
 
 """ X, Y = prpr.preprocess_data("data/abalone.data")
 

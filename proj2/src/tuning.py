@@ -10,7 +10,7 @@ from sklearn.metrics import r2_score
 
 ks = [1, 3, 5, 7, 13, 15]
 sigs = [0.25, 0.5, 1, 2]
-es = [0.25, 0.5, 1]
+es = [0.25, 0.5, 0.75]
 
 def generateStartingTestData(X, Y):
     # copy the data to prevent mutating the source
@@ -80,13 +80,14 @@ def tuneEKNNClassifier(X, Y):
             perf[j] += ev.zero_one_loss(Y_test, predictions)
     best = min(perf)
     index = perf.index(best)
-    return ks[index], min(cl.numberOfExamples(), len(X_train) - cl.numberOfExamples())
+    return ks[index], cl.numberOfExamples()
 
 def tuneEKNNRegression(X, Y):
     Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
     cl = eknn.EKNNErrRegression()
     this_es = [es[i] * (np.max(Y) - np.min(Y)) for i in range(len(es))]
     perf = [[[0] * len(ks) for _ in range(len(sigs))] for _ in range(len(es))]
+    
     for i in range(10):
         X_train, Y_train = generateTrainingData(Xs, Ys, i)
         cl.fit(X_train, Y_train)
@@ -102,7 +103,8 @@ def tuneEKNNRegression(X, Y):
     sig_i = max_val_arr.index(max_val)
     e_i = max_val_mat[sig_i].index(max_val)
     k_i = perf[e_i][sig_i].index(max_val)
-    return ks[k_i], sigs[sig_i], this_es[e_i], min(cl.numberOfExamples(), len(X_train) - cl.numberOfExamples())
+    cl.edit(X_test, Y_test, 1, this_es[e_i])
+    return ks[k_i], sigs[sig_i], this_es[e_i], cl.numberOfExamples()
 
 def tuneKMeansClassifier(X, Y, kc):
     Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
@@ -141,9 +143,11 @@ def tuneKMeansRegression(X, Y, kc):
 def tuneEverything(datadirectory : str):
     if not datadirectory.endswith("/"):
         datadirectory += "/"
-    filenames = ["breast-cancer-wisconsin.data", "glass.data", "soybean-small.data", "abalone.data", "forestfires.csv", "machine.data"]
+    filenames = ["soybean-small.data", "glass.data", "breast-cancer-wisconsin.data", "machine.data", "forestfires.csv", "abalone.data"]
     paths = [datadirectory + filenames[i] for i in range(6)]
-    for i in range(3):
+    f = open(datadirectory + "tuned-classifier-values.csv", "w")
+    f.write("filename,k value for knn,k value for eknn,k cluster for kmeans,k value for kmeans\n")
+    """ for i in range(3):
         path = paths[i]
         try:
             X, Y = pr.preprocess_data(path)
@@ -153,4 +157,27 @@ def tuneEverything(datadirectory : str):
         kn = tuneKNNClassifier(X, Y)
         ken, kc = tuneEKNNClassifier(X, Y)
         kcn = tuneKMeansClassifier(X, Y, kc)
+        f.write("%s,%d,%d,%d,%d\n" % (path, kn, ken, kc, kcn))
+        f.flush()
+    f.close()
+    f = open(datadirectory + "tuned-regressor-values.csv", "w")
+    f.write("filename,k value for knn,sig value for knn,k value for eknn,sig value for eknn,e value for eknn,k cluster for kmeans,k value for kmeans,sig value for kmeans\n") """
     
+    for i in range(3, 6):
+        path = paths[i]
+        try:
+            X, Y = pr.preprocess_data(path)
+            print("Loading file at " + path + " successful")
+        except:
+            print("Failed to load file at " + path)
+        print("tuning KNN Regression")
+        kn, sig_n = tuneKNNRegression(X, Y)
+        print("results: %d %f" % (kn, sig_n))
+        print("tuning ENN Regression")
+        ken, sig_e, e_e, kc = tuneEKNNRegression(X, Y)
+        print("results: %d %f %d %d" % (ken, sig_e, e_e, kc))
+        print("tuning KMeans Regression")
+        kcn, sig_cn = tuneKMeansRegression(X, Y, kc)
+        f.write("%s,%d,%f,%d,%f,%d,%d,%d,%f\n" % (path, kn, sig_n, ken, sig_e, e_e, kc, kcn, sig_cn))
+        f.flush()
+    f.close()
