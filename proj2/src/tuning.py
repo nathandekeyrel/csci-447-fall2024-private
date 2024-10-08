@@ -80,7 +80,7 @@ def tuneEKNNClassifier(X, Y):
             perf[j] += ev.zero_one_loss(Y_test, predictions)
     best = min(perf)
     index = perf.index(best)
-    return ks[index], min(cl.numberOfExamples(), len(X_train) - cl.numberOfExamples)
+    return ks[index], min(cl.numberOfExamples(), len(X_train) - cl.numberOfExamples())
 
 def tuneEKNNRegression(X, Y):
     Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
@@ -102,20 +102,17 @@ def tuneEKNNRegression(X, Y):
     sig_i = max_val_arr.index(max_val)
     e_i = max_val_mat[sig_i].index(max_val)
     k_i = perf[e_i][sig_i].index(max_val)
-    return ks[k_i], sigs[sig_i], this_es[e_i], min(cl.numberOfExamples(), len(X_train) - cl.numberOfExamples)
+    return ks[k_i], sigs[sig_i], this_es[e_i], min(cl.numberOfExamples(), len(X_train) - cl.numberOfExamples())
 
 def tuneKMeansClassifier(X, Y, kc):
     Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
-    kmeans = km.KMeans(kc)
+    kmeans = km.KMeansClassification(kc)
     perf = [0] * len(ks)
     for i in range(10):
         X_train, Y_train = generateTrainingData(Xs, Ys, i)
         kmeans.fit(X_train, Y_train)
-        rX, rY = kmeans.get_reduced_dataset()
-        cl = knn.KNNClassifier()
-        cl.fit(rX, rY)
         for j in range(len(ks)):
-            predictions = cl.predict(X_test, ks[j])
+            predictions = kmeans.predict(X_test, ks[j])
             perf[j] += ev.zero_one_loss(Y_test, predictions)
     min_val = min(perf)
     k_i = perf.index(min_val)
@@ -123,7 +120,7 @@ def tuneKMeansClassifier(X, Y, kc):
 
 def tuneKMeansRegression(X, Y, kc):
     Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
-    kmeans = km.KMeans(kc)
+    kmeans = km.KMeansRegression(kc)
     perf = [[0] * len(ks) for _ in range(len(sigs))]
     for i in range(10):
         X_train, Y_train = generateTrainingData(Xs, Ys, i)
@@ -138,7 +135,7 @@ def tuneKMeansRegression(X, Y, kc):
     max_arr = [max(perf[i]) for i in range(len(sigs))]
     max_val = max(max_arr)
     sig_i = max_arr.index(max_val)
-    k_i = perf[sig_i].index(max_arr)
+    k_i = perf[sig_i].index(max_val)
     return ks[k_i], sigs[sig_i]
 
 def tuneEverything(datadirectory : str):
@@ -148,7 +145,12 @@ def tuneEverything(datadirectory : str):
     paths = [datadirectory + filenames[i] for i in range(6)]
     for i in range(3):
         path = paths[i]
-        X, Y = pr.preprocess_data(path)
+        try:
+            X, Y = pr.preprocess_data(path)
+            print("Loading file at " + path + " successful")
+        except:
+            print("Failed to load file at " + path)
         kn = tuneKNNClassifier(X, Y)
         ken, kc = tuneEKNNClassifier(X, Y)
         kcn = tuneKMeansClassifier(X, Y, kc)
+    

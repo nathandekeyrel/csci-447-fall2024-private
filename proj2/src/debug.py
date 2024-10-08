@@ -45,7 +45,7 @@ cl = knn.KNNClassifier()
 cms = kfxv.tenfoldcrossvalidationC(cl, X, Y, 5)
 print(cms) """
 
-X, Y = prpr.preprocess_data("data/breast-cancer-wisconsin.data")
+""" X, Y = prpr.preprocess_data("data/breast-cancer-wisconsin.data")
 print(len(Y))
 Xs, Ys = kfxv.kfold(X, Y, 10)
 Xh = Xs.pop(0)
@@ -76,8 +76,23 @@ time5 = t.time()
 print(str(time5 - time4))
 print(re.mark.sum())
 # print(tu.r2_score(Yh, pred))
-print(ev.zero_one_loss(np.array(Yh), np.array(pred)))
+print(ev.zero_one_loss(np.array(Yh), np.array(pred))) """
 
+""" X, Y = prpr.preprocess_data("data/machine.data")
+tu.tuneEKNNRegression(X, Y)
+tu.tuneKNNRegression(X, Y)
+tu.tuneKMeansRegression(X, Y, 40)
+
+X, Y = prpr.preprocess_data("data/soybean-small.data")
+tu.tuneEKNNClassifier(X, Y)
+tu.tuneKNNRegression(X, Y)
+tu.tuneKMeansClassifier(X, Y, 10) """
+
+
+tu.tuneEverything("data/")
+tu.tuneEverything("data")
+tu.tuneEverything("../data/")
+tu.tuneEverything("../data")
 
 """ X, Y = prpr.preprocess_data("data/abalone.data")
 
@@ -146,7 +161,7 @@ print(np.array([[np.sqrt(np.sum(x - y) ** 2) for y in ys] for x in xs]))
 print(np.sqrt(np.sum([(x - y) ** 2 for x, y in zip(xs, ys)]))) """
 
 
-paths = ["data/abalone.data", "data/breast-cancer-wisconsin.data", "data/forestfires.csv", "data/glass.data", "data/machine.data", "data/soybean-small.data"]
+""" paths = ["data/abalone.data", "data/breast-cancer-wisconsin.data", "data/forestfires.csv", "data/glass.data", "data/machine.data", "data/soybean-small.data"]
 for path in paths:
-  X, Y = prpr.preprocess_data(path)
+  X, Y = prpr.preprocess_data(path) """
   
