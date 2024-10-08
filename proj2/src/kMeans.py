@@ -80,9 +80,17 @@ class KMeansClassification:
             # retrieve corresponding labels
             cluster_y = self.cluster_labels[nearest_cluster]
 
+            # Handle empty clusters
+            if len(cluster_X) == 0:
+                # If the nearest cluster is empty, use the second nearest
+                distances[nearest_cluster] = np.inf
+                nearest_cluster = np.argmin(distances)
+                cluster_X = self.cluster_points[nearest_cluster]
+                cluster_y = self.cluster_labels[nearest_cluster]
+
             # adjust k if cluster has fewer than k points
             if len(cluster_X) < k:
-                k = len(cluster_X)
+                k = max(1, len(cluster_X))
 
             # calculate euclidian distance between input points and each point in the cluster
             distances = np.array([self.euclidian_distance(x, cx) for cx in cluster_X])
@@ -92,9 +100,19 @@ class KMeansClassification:
             nearest_labels = cluster_y[nearest_indices]
 
             # majority voting
-            predictions[i] = np.argmax(np.bincount(nearest_labels))
+            if len(nearest_labels) > 0:
+                predictions[i] = np.argmax(np.bincount(nearest_labels))
 
         return predictions
+
+    def get_reduced_dataset(self):
+        """Get the reduced dataset consisting of centroids and their corresponding majority labels.
+
+        :return: A tuple of 2 numpy arrays (centroids, labels)
+        """
+        majority_labels = np.array([np.argmax(np.bincount(cluster_labels)) if len(cluster_labels) > 0
+                                    else -1 for cluster_labels in self.cluster_labels])
+        return self.centroids, majority_labels
 
 
 class KMeansRegression:
