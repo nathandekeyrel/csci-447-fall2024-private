@@ -2,6 +2,7 @@ import copy
 import tenfoldcv as kfxv
 import numpy as np
 
+
 def generateTestData(X, Y):
     """Generates test data for doing cross validation
 

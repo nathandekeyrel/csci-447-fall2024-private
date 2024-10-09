@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import StandardScaler, OneHotEncoder, Normalizer
+from sklearn.preprocessing import OneHotEncoder, Normalizer
 
 
 def preprocess_data(filepath):
@@ -70,7 +70,7 @@ def _preprocess_glass(filepath):
 
     # target is 'Type' is valued from 1-7 (integers)
     # "4 vehicle_windows_non_float_processed (none in this database)" - from names
-    
+
     class_mapping = {
         1: 0,
         2: 1,

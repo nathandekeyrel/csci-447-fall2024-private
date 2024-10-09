@@ -9,7 +9,7 @@ import preprocess as pr
 import sys
 from sklearn.metrics import r2_score
 
-# Global variables holding optimal k, sigma, and epsilon values
+# global variables holding optimal k, sigma, and epsilon values
 ks = [1, 3, 5, 7, 13, 15]
 sigs = [0.25, 0.5, 1, 2]
 es = [0.25, 0.5, 0.75]
