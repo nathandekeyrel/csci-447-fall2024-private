@@ -177,7 +177,7 @@ class KMeansRegression:
                                          else np.nan for i in range(self.n_clusters)])
         return self
 
-    def predict(self, X, k=None, sign=None):
+    def predict(self, X):
         """Predict cluster labels for the input data.
 
         :param self: The k-means object
