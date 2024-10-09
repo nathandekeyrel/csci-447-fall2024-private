@@ -3,6 +3,7 @@ import heapq as hq
 import numpy as np
 import copy
 import evaluating as ev
+import sys
 
 class EKNNErrClassifier:
     def __init__(self):
@@ -21,12 +22,13 @@ class EKNNErrClassifier:
         while qd >= q: 
             changed = False
             for i in range(self.size):
-                self.mark[i] = False
-                if not self._predict(self.X[i], 1) == self.Y[i]:
-                    if not changed:
-                        changed = True
-                else:
-                    self.mark[i] = True
+                if self.mark[i]:
+                    self.mark[i] = False
+                    if not self._predict(self.X[i], 1) == self.Y[i]:
+                        if not changed:
+                            changed = True
+                    else:
+                        self.mark[i] = True
             if not changed:
                 return
             q = qd
@@ -39,6 +41,7 @@ class EKNNErrClassifier:
         distances = []
         for i in range(len(self.X)):
             if not self.mark[i]:
+                distances.append(sys.float_info.max)
                 continue
             distances.append(euclidianDistance(x, self.X[i]))
         indices = np.argsort(distances)[:k]
@@ -72,12 +75,13 @@ class EKNNErrRegression:
         while qd <= q:
             changed = False
             for i in range(len(self.X)):
-                self.mark[i] = False
-                if np.abs(self._predict(self.X[i], 1, 1) - self.Y[i]) >= e:
-                    if not changed:
-                        changed = True
-                else:
-                    self.mark[i] = True
+                if self.mark[i]:
+                    self.mark[i] = False
+                    if np.abs(self._predict(self.X[i], 1, 1) - self.Y[i]) >= e:
+                        if not changed:
+                            changed = True
+                    else:
+                        self.mark[i] = True
             if not changed:
                 return
             q = qd
@@ -90,6 +94,7 @@ class EKNNErrRegression:
         distances = []
         for i in range(len(self.X)):
             if not self.mark[i]:
+                distances.append(sys.float_info.max)
                 continue
             distances.append(euclidianDistance(x, self.X[i]))
         indices = np.argsort(distances)[:k]
