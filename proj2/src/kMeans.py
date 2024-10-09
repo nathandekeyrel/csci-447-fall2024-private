@@ -29,7 +29,8 @@ class KMeansClassification:
         :param x2: Second vector
         :return: The Euclidean distance between x1 and x2
         """
-        return np.sqrt(np.sum((x1 - x2) ** 2))
+        distance = np.sqrt(np.sum((x1 - x2) ** 2))
+        return distance
 
     def fit(self, X, y):
         """Perform K-Means clustering on the input data and store cluster information.
