@@ -40,7 +40,7 @@ class KMeansClassification:
         :return: The fitted KMeansClassification object
         """
         # initialize centroids randomly
-        self.centroids = X[np.random.choice(X.shape[0], self.n_clusters, replace=False)]
+        self.centroids = X[np.random.choice(X.shape[0], self.n_clusters)]
 
         for _ in range(self.max_iterations):
             # calculate distances between each point and all centroids
@@ -155,7 +155,7 @@ class KMeansRegression:
         :return: The fitted KMeans object
         """
         # initialize centroids randomly
-        self.centroids = X[np.random.choice(X.shape[0], self.n_clusters, replace=False)]
+        self.centroids = X[np.random.choice(X.shape[0], self.n_clusters)]
 
         for _ in range(self.max_iterations):
             # calculate distances between each point and all centroids
@@ -177,7 +177,7 @@ class KMeansRegression:
                                          else np.nan for i in range(self.n_clusters)])
         return self
 
-    def predict(self, X):
+    def predict(self, X, k=None, sign=None):
         """Predict cluster labels for the input data.
 
         :param self: The k-means object
