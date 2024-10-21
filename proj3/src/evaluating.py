@@ -1,24 +1,46 @@
 import numpy as np
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import precision_score, recall_score
 
 
 ###################################
 # Regression Loss Method
 ###################################
 
+# Standard Means Squared Error
 def mse(y_true, y_pred):
     """Calculate mean squared error for regression tasks
 
     :param y_true: array-like of shape (n_samples)
     :param y_pred: array-like, shape (n samples)
-    :return:
+    :return: mean squared error
     """
-    return mean_squared_error(y_true, y_pred)
+    loss = np.mean((y_true - y_pred) ** 2)
+    return loss
 
 
-# RMSE
+# Root Mean Squared Error -- TODO: fact check this
+def rmse(y_true, y_pred):
+    """Calculate root-mean squared error for regression tasks
 
-# MAE
+    :param y_true: array-like of shape (n_samples)
+    :param y_pred: array-like, shape (n samples)
+    :return: root mean squared error
+    """
+    loss = (mse(y_true, y_pred) ** 1 / 2)
+    return loss
+
+
+# Mean Absolute Error -- TODO: fact check this
+def mae(y_true, y_pred):
+    """Calculate mean absolute error for regression tasks
+
+    :param y_true: array-like of shape (n_samples)
+    :param y_pred: array-like, shape (n samples)
+    :return: mean absolute error
+    """
+    loss = np.average(np.abs(y_true - y_pred))
+    return loss
+
 
 # I think we just go with the 3 different versions of mean squared error, some are more interpretable, some have
 # more/less sensitivity to outliers, etc. I was reading that r^2 might not be great for NNs, a variation might
@@ -42,5 +64,38 @@ def zero_one_loss(y_true, y_pred):
     metric = np.mean(y_true != y_pred)
     return metric
 
+
 # I think we just go with what we did for the first assignment: prec, recall, maybe a conf mat. If we decide to graph
 # which might be beneficial it could be a bit better visually than just have a bunch of tables and conf mats.
+
+# We can calculate these manually if you want, it's just easier to use sklearn in this instance
+def calculate_precision(y_true, y_pred):
+    """
+    Calculate precision for each class.
+
+    :param y_true: array-like of shape (n_samples)
+        Same.
+    :param y_pred: array-like of shape (n_samples)
+        Same.
+    :return: array-like of shape (n_classes)
+        Precision for each class. If a class is not present in y_true or y_pred,
+        the corresponding precision will be set to 0.
+    """
+    precision = precision_score(y_true, y_pred, average=None, zero_division=0)
+    return precision
+
+
+def calculate_recall(y_true, y_pred):
+    """
+    Compute recall for each class.
+
+    :param y_true: array-like of shape (n_samples)
+        Same.
+    :param y_pred: array-like of shape (n_samples)
+        Same.
+    :return: array-like of shape (n_classes)
+        Recall for each class. If a class is not present in y_true,
+        the corresponding recall will be set to 0.
+    """
+    recall = recall_score(y_true, y_pred, average=None, zero_division=0)
+    return recall
