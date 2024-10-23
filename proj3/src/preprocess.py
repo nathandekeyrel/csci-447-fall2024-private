@@ -1,14 +1,25 @@
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import OneHotEncoder, Normalizer
+from sklearn.preprocessing import OneHotEncoder
 
 
 def normalize(x):
-    norm = (x - x.min()) / (x.max() - x.min())  # general formula
+    """Normalize array values to range [0,1] using min-max scaling.
+
+    :param x: Array-like input data to normalize
+    :return: Normalized array with values scaled to [0,1]
+    """
+    norm = (x - x.min()) / (x.max() - x.min())
     return norm
 
 
 def normalize_numeric_columns(df, columns):
+    """Normalize specified numeric columns in a dataframe to range [0,1].
+
+    :param df: Input pandas DataFrame
+    :param columns: List of column names to normalize
+    :return: DataFrame with specified columns normalized
+    """
     df_normalized = df.copy()
     for col in columns:
         df_normalized[col] = normalize(df[col])
