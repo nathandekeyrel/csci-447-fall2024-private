@@ -18,7 +18,6 @@ def mse(y_true, y_pred):
     return loss
 
 
-# Root Mean Squared Error -- TODO: fact check this
 def rmse(y_true, y_pred):
     """Calculate root-mean squared error for regression tasks
 
@@ -26,11 +25,10 @@ def rmse(y_true, y_pred):
     :param y_pred: array-like, shape (n samples)
     :return: root mean squared error
     """
-    loss = (mse(y_true, y_pred) ** 1 / 2)
+    loss = np.sqrt(mse(y_true, y_pred))
     return loss
 
 
-# Mean Absolute Error -- TODO: fact check this
 def mae(y_true, y_pred):
     """Calculate mean absolute error for regression tasks
 
@@ -38,7 +36,7 @@ def mae(y_true, y_pred):
     :param y_pred: array-like, shape (n samples)
     :return: mean absolute error
     """
-    loss = np.average(np.abs(y_true - y_pred))
+    loss = np.mean(np.abs(y_true - y_pred))
     return loss
 
 
