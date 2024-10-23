@@ -2,6 +2,7 @@ import copy
 import numpy as np
 import random
 
+## TODO needs to be updated for current project
 
 def kfold(X, Y, k):
     """Stratify and break the data into k folds
