@@ -4,13 +4,16 @@ from sklearn.preprocessing import OneHotEncoder, Normalizer
 
 
 def normalize(x):
-    # TODO: implement normalization. Should take column as input and return the normalized column
-    norm = (x - x.min()) / (x.max() - x)  # general formula
+    norm = (x - x.min()) / (x.max() - x.min())  # general formula
     return norm
 
 
-# TODO: update methods ot not use normalizer
-# TODO: look into OneHotEncoder more and decide whether to make that method by hand
+def normalize_numeric_columns(df, columns):
+    df_normalized = df.copy()
+    for col in columns:
+        df_normalized[col] = normalize(df[col])
+    return df_normalized
+
 
 def preprocess_data(filepath):
     """Preprocess a dataset based on its filename.
@@ -57,11 +60,9 @@ def _preprocess_cancer(filepath):
 
     y = df['Class'].map(class_mapping).values  # Target is 'Class'
 
-    # drop 'Id' (useless) and 'Class' (target)
-    X = df.drop(['Id', 'Class'], axis=1)
-
-    scaler = Normalizer()
-    X = scaler.fit_transform(X)
+    numeric_columns = [col for col in df.columns if col not in ['Id', 'Class']]
+    df_normalized = normalize_numeric_columns(df, numeric_columns)
+    X = df_normalized[numeric_columns].values
 
     return X, y
 
@@ -90,12 +91,9 @@ def _preprocess_glass(filepath):
     }
     y = df['Type'].map(class_mapping).values
 
-    # drop id (useless) and type (the target)
-    X = df.drop(['Id', 'Type'], axis=1)
-
-    # the other classes are numeric, standardize
-    scalar = Normalizer()
-    X = scalar.fit_transform(X)
+    numeric_columns = [col for col in df.columns if col not in ['Id', 'Type']]
+    df_normalized = normalize_numeric_columns(df, numeric_columns)
+    X = df_normalized[numeric_columns].values
 
     return X, y
 
@@ -127,12 +125,9 @@ def _preprocess_soybean(filepath):
 
     X = df.drop('Class', axis=1)
     encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
-    X_encoded = encoder.fit_transform(X)
+    X = encoder.fit_transform(X)
 
-    feature_names = encoder.get_feature_names_out(X.columns)
-    X = pd.DataFrame(X_encoded, columns=feature_names)
-
-    return X.values, y
+    return X, y
 
 
 def _preprocess_abalone(filepath):
@@ -158,16 +153,13 @@ def _preprocess_abalone(filepath):
     # define numeric columns
     numeric_columns = ['Length', 'Diameter', 'Height', 'Whole Weight',
                        'Shucked Weight', 'Viscera Weight', 'Shell Weight']
+    df_normalized = normalize_numeric_columns(df, numeric_columns)
 
-    # new dataframe with encoded 'Sex' and numeric columns
+    # new dataframe with encoded 'Sex' and normalized numeric columns
     X = pd.concat([
         pd.DataFrame(sex_encoded, columns=sex_column_names),
-        df[numeric_columns]
+        df_normalized[numeric_columns]
     ], axis=1)
-
-    # standardize numerical values
-    scaler = Normalizer()
-    X[numeric_columns] = scaler.fit_transform(X[numeric_columns])
 
     return X.values, y
 
@@ -197,17 +189,14 @@ def _preprocess_fires(filepath):
     categorical_encoded = encoder.fit_transform(df[['month', 'day']])
     categorical_column_names = encoder.get_feature_names_out(['month', 'day'])
 
-    numeric_columns = df.drop(['month', 'day', 'area'], axis=1).columns
+    numeric_columns = [col for col in df.columns if col not in ['month', 'day', 'area']]
+    df_normalized = normalize_numeric_columns(df, numeric_columns)
 
-    # new datasets with encoded month and day
+    # new datasets with normalized values and encoded month and day
     X = pd.concat([
         pd.DataFrame(categorical_encoded, columns=categorical_column_names),
-        df[numeric_columns]
+        df_normalized[numeric_columns]
     ], axis=1)
-
-    # standardize numerical values
-    scaler = Normalizer()
-    X[numeric_columns] = scaler.fit_transform(X[numeric_columns])
 
     return X.values, y
 
@@ -226,14 +215,20 @@ def _preprocess_computer(filepath):
 
     y = df['PRP'].values  # Target: 'PRP', continuously valued
 
-    # I still dropped names and erp because I don't think there are value in these columns
-    # if you want me to keep them, we would need to encode the names. ERP is their model's prediction,
-    # so I think it might cause overfitting problems
-    numeric_columns = df.drop(['Vendor Name', 'Model Name', 'PRP', 'ERP'], axis=1).columns
-    X = df[numeric_columns]
+    # encode vendor names
+    encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
+    vendor_encoded = encoder.fit_transform(df[['Vendor Name']])
+    vendor_columns = encoder.get_feature_names_out(['Vendor Name'])
 
-    # standardize continuous values
-    scaler = Normalizer()
-    X = pd.DataFrame(scaler.fit_transform(X), columns=numeric_columns)
+    # I still dropped model name and erp because I don't think there are value in these columns
+
+    numeric_columns = ['MYCT', 'MMIN', 'MMAX', 'CACH', 'CHMIN', 'CHMAX']
+    df_normalized = normalize_numeric_columns(df, numeric_columns)
+
+    # new set with encoded vendors with normalized numeric features
+    X = pd.concat([
+        pd.DataFrame(vendor_encoded, columns=vendor_columns),
+        df_normalized[numeric_columns]
+    ], axis=1)
 
     return X.values, y
