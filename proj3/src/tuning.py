@@ -12,7 +12,8 @@ from sklearn.metrics import r2_score
 # global variables holding optimal k, sigma, and epsilon values
 learning_rate = [1, 3, 5, 7, 13, 15]
 batches = [0.25, 0.5, 1, 2]
-n_hidden_layers = []
+n_hidden = []
+momentum = []
 
 
 def generateStartingTestData(X, Y):
@@ -93,24 +94,27 @@ def tuneFFNNRegression(X, Y, n_hidden_layers):
     """
     Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
     n_inputs = len(X[0])
-    re = nn.ffNNRegression(n_inputs, n_hidden, n_hidden_layers)
-    perfarr = np.array()
-
+    a_n = len(learning_rate)
+    b_n = len(batches)
+    c_n = len(n_hidden)
+    total = a_n * b_n * c_n
+    perfarr = np.array((a_n, b_n, c_n))
     # perform 10-fold cross-validation
-    for i in range(10):
+    for i in range(total):
+        a_i = i % a_n
+        b_i = np.floor(i / a_n) % b_n
+        c_i = np.floor(i / (a_n * b_n)) % c_n
+        re = nn.ffNNRegression(n_inputs, n_hidden[c_i], n_hidden_layers)
         X_train, Y_train = generateTrainingData(Xs, Ys, i)
-        cl.fit(X_train, Y_train)
-        for j in range(len(ks)):
-            for k in range(len(sigs)):
-                predictions = cl.predict(X_test, ks[j], sig=sigs[k])
-                perf[k][j] += r2_score(Y_test, predictions)
-
-    # find the k and sigma values with the highest R2 score
-    internal_arr_maxs = [max(perf[i]) for i in range(len(sigs))]
-    max_r2 = max(internal_arr_maxs)
-    sig_i = internal_arr_maxs.index(max_r2)
-    k_i = perf[sig_i].index(max_r2)
-    return ks[k_i], sigs[sig_i]
+        re.train(X_train, Y_train, 100, batches[b_i], learning_rate[a_i])
+        # TODO figure out how to detect convergence. IDEA run until test set diverges and find n_epochs with best performance
+        predictions = re.predict(X_test)
+        perfarr[a_i][b_i][c_i] += r2_score(Y_test, predictions)
+    f_i = np.argmax(perfarr)
+    lr_i = np.floor(f_i / (b_n * c_n))
+    bat_i = np.floor(f_i / (a_n * c_n))
+    nh_i = np.floor(f_i / (a_n * b_n))
+    return learning_rate[lr_i], batches[bat_i], n_hidden[nh_i]
 
 
 def tuneEverything(datadirectory: str):
