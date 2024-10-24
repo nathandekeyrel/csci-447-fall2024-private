@@ -3,6 +3,28 @@ import numpy as np
 from sklearn.preprocessing import OneHotEncoder
 
 
+def preprocess_data(filepath):
+    """Preprocess a dataset based on its filename.
+
+    :param filepath: Path to the dataset file
+    :return: Preprocessed dataset
+    """
+    if 'breast-cancer-wisconsin' in filepath:
+        return _preprocess_cancer(filepath)
+    elif 'glass' in filepath:
+        return _preprocess_glass(filepath)
+    elif 'soybean-small' in filepath:
+        return _preprocess_soybean(filepath)
+    elif 'abalone' in filepath:
+        return _preprocess_abalone(filepath)
+    elif 'forestfires' in filepath:
+        return _preprocess_fires(filepath)
+    elif 'machine' in filepath:
+        return _preprocess_computer(filepath)
+    else:
+        print(f"Bad dataset: {filepath}")
+
+
 def normalize(x):
     """Normalize array values to range [0,1] using min-max scaling.
 
@@ -24,28 +46,6 @@ def normalize_numeric_columns(df, columns):
     for col in columns:
         df_normalized[col] = normalize(df[col])
     return df_normalized
-
-
-def preprocess_data(filepath):
-    """Preprocess a dataset based on its filename.
-
-    :param filepath: Path to the dataset file
-    :return: Preprocessed dataset
-    """
-    if 'breast-cancer-wisconsin' in filepath:
-        return _preprocess_cancer(filepath)
-    elif 'glass' in filepath:
-        return _preprocess_glass(filepath)
-    elif 'soybean-small' in filepath:
-        return _preprocess_soybean(filepath)
-    elif 'abalone' in filepath:
-        return _preprocess_abalone(filepath)
-    elif 'forestfires' in filepath:
-        return _preprocess_fires(filepath)
-    elif 'machine' in filepath:
-        return _preprocess_computer(filepath)
-    else:
-        print(f"Bad dataset: {filepath}")
 
 
 def _preprocess_cancer(filepath):
@@ -72,7 +72,6 @@ def _preprocess_cancer(filepath):
     y_numeric = df['Class'].map(class_mapping).values  # Target is 'Class'
     encoder = OneHotEncoder(sparse_output=False)
     y = encoder.fit_transform(y_numeric.reshape(-1, 1))  # make y vals 2d before encoding
-    print(y.shape)
 
     numeric_columns = [col for col in df.columns if col not in ['Id', 'Class']]
     df_normalized = normalize_numeric_columns(df, numeric_columns)
@@ -107,7 +106,6 @@ def _preprocess_glass(filepath):
     y_numeric = df['Type'].map(class_mapping).values
     encoder = OneHotEncoder(sparse_output=False)
     y = encoder.fit_transform(y_numeric.reshape(-1, 1))  # make y vals 2d before encoding
-    print(y.shape)
 
     numeric_columns = [col for col in df.columns if col not in ['Id', 'Type']]
     df_normalized = normalize_numeric_columns(df, numeric_columns)
@@ -141,7 +139,6 @@ def _preprocess_soybean(filepath):
     y_numeric = df['Class'].map(class_mapping).values  # target is class
     encoder = OneHotEncoder(sparse_output=False)
     y = encoder.fit_transform(y_numeric.reshape(-1, 1))  # make y vals 2d before encoding
-    print(y.shape)
 
     X = df.drop('Class', axis=1)
     encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
