@@ -96,9 +96,10 @@ def _preprocess_glass(filepath):
         1: 0,
         2: 1,
         3: 2,
-        5: 3,
-        6: 4,
-        7: 5
+        4: 3,
+        5: 4,
+        6: 5,
+        7: 6
     }
     y = df['Type'].map(class_mapping).values
 
