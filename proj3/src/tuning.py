@@ -90,31 +90,40 @@ def tuneFFNNRegression(X, Y, n_hidden_layers):
 
     :param X: Feature vector
     :param Y: Target vector
-    :return: Tuple (optimal k value, optimal sigma value)
+    :return: Tuple ()
     """
     Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
     n_inputs = len(X[0])
     a_n = len(learning_rate)
     b_n = len(batches)
     c_n = len(n_hidden)
-    total = a_n * b_n * c_n
-    perfarr = np.array((a_n, b_n, c_n))
+    d_n = len(momentum)
+    total = a_n * b_n * c_n * d_n
+    perfarr = np.array((a_n, b_n, c_n, d_n))
     # perform 10-fold cross-validation
-    for i in range(total):
-        a_i = i % a_n
-        b_i = np.floor(i / a_n) % b_n
-        c_i = np.floor(i / (a_n * b_n)) % c_n
-        re = nn.ffNNRegression(n_inputs, n_hidden[c_i], n_hidden_layers)
-        X_train, Y_train = generateTrainingData(Xs, Ys, i)
-        re.train(X_train, Y_train, 100, batches[b_i], learning_rate[a_i])
-        # TODO figure out how to detect convergence. IDEA run until test set diverges and find n_epochs with best performance
-        predictions = re.predict(X_test)
-        perfarr[a_i][b_i][c_i] += r2_score(Y_test, predictions)
+    for n in range(10):
+        X_train, Y_train = generateTrainingData(Xs, Ys, n)
+        for i in range(total):
+            a_i = i % a_n
+            b_i = np.floor(i / a_n) % b_n
+            c_i = np.floor(i / (a_n * b_n)) % c_n
+            d_i = np.floor(i / (a_n * b_n * c_n)) % d_n
+            re = nn.ffNNRegression(X_train, Y_train, n_inputs, n_hidden[c_i], n_hidden_layers)
+            # TODO figure out how to detect convergence. IDEA run until test set diverges and find n_epochs with best performance
+            testing = True
+            epochs = 0
+            while testing:
+                epochs += 100
+                re.train(100, batches[b_i], learning_rate[a_i], momentum[d_i])
+                predictions = re.predict(X_test)
+                
+            perfarr[a_i][b_i][c_i] += r2_score(Y_test, predictions)
     f_i = np.argmax(perfarr)
-    lr_i = np.floor(f_i / (b_n * c_n))
-    bat_i = np.floor(f_i / (a_n * c_n))
-    nh_i = np.floor(f_i / (a_n * b_n))
-    return learning_rate[lr_i], batches[bat_i], n_hidden[nh_i]
+    lr_i = np.floor(f_i / (b_n * c_n * d_n))
+    bat_i = np.floor(f_i / (a_n * c_n * d_n))
+    nh_i = np.floor(f_i / (a_n * b_n * d_n))
+    mom_i = np.floor(f_i / (a_n * b_n * c_n))
+    return learning_rate[lr_i], batches[bat_i], n_hidden[nh_i], momentum[mom_i]
 
 
 def tuneEverything(datadirectory: str):

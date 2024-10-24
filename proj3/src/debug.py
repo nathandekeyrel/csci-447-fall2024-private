@@ -15,14 +15,17 @@ def r2(y_true, y_pred):
   r = 1 - (e2_s / v2_s)
   return r
 
-X, Y = pr.preprocess_data("data/forestfires.csv")
+X, Y = pr.preprocess_data("data/abalone.data")
 
 X_train, Y_train, X_test, Y_test = ut.generateTestData(X, Y)
 
-re = fn.ffNNRegression(len(X[0]), len(X[0]) * 2, 3)
+re = fn.ffNNRegression(X_train, Y_train, len(X[0]), len(X[0]) * 2, 3)
 
+epochs = 0
 while True:
-  re.train(X_train, Y_train, 100, 10, .1, 1)
+  epochs += 100
+  re.train(100, 100, .05, 1)
   p = re.predict(X_test)
+  print("epoch: " + str(epochs))
   print(ev.mse(Y_test, p))
   print(r2(Y_test, p))
