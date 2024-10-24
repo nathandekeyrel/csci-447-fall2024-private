@@ -22,7 +22,7 @@ X_train, Y_train, X_test, Y_test = ut.generateTestData(X, Y)
 re = fn.ffNNRegression(len(X[0]), len(X[0]) * 2, 3)
 
 while True:
-  re.train(X_train, Y_train, 1000, 1, .01)
+  re.train(X_train, Y_train, 100, 10, .1, 1)
   p = re.predict(X_test)
   print(ev.mse(Y_test, p))
   print(r2(Y_test, p))
