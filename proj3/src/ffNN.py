@@ -1,8 +1,123 @@
 import numpy as np
 
 
-def ffNNClassification():
-    pass
+class ffNNClassification:
+    def __init__(self, n_input, n_hidden, n_hidden_layers, n_output):
+        self.n_input = n_input
+        self.n_hidden = n_hidden
+        self.n_hidden_layers = n_hidden_layers
+        self.n_output = n_output
+        self.layers = n_hidden_layers + 2
+        self.outputs = None
+        self.biases = []
+        self.weights = []
+        self.weight_velocities = []
+        self.bias_velocities = []
+        layer_sizes = []
+
+        if n_hidden_layers == 0:
+            layer_sizes.append([n_output, n_input])  # direct input -> output
+        else:
+            layer_sizes.append([n_hidden, n_input])  # input -> first hidden
+            for _ in range(n_hidden_layers - 1):
+                layer_sizes.append([n_hidden, n_hidden])  # hidden -> hidden
+            layer_sizes.append([n_output, n_hidden])  # last hidden -> output
+
+        self.weights = [(np.random.rand(x, y) + -0.5) * 0.1 for x, y in layer_sizes]
+        self.biases = [(np.random.rand(x, 1) + -0.5) * 0.1 for x, _ in layer_sizes]
+
+        self.weight_velocities = [np.zeros_like(w) for w in self.weights]
+        self.bias_velocities = [np.zeros_like(b) for b in self.biases]
+
+    @staticmethod
+    def softmax(x):
+        exp_x = np.exp(x - np.max(x))
+        return exp_x / exp_x.sum()
+
+    def feedforward(self, x: np.ndarray):
+        self.outputs = []
+        self.outputs.append(x.reshape(-1, 1))
+
+        if self.n_hidden_layers == 0:  # if no hidden layers
+            activation = np.dot(self.weights[0], self.outputs[0]) + self.biases[0]
+            self.outputs.append(self.softmax(activation))
+        else:  # if > 0 hidden layers
+            for i in range(self.layers - 2):
+                activation = np.dot(self.weights[i], self.outputs[i]) + self.biases[i]
+                self.outputs.append(sigmoid(activation))
+
+            activation = np.dot(self.weights[-1], self.outputs[-1]) + self.biases[-1]
+            self.outputs.append(self.softmax(activation))
+
+        return self.outputs
+
+    def backprop(self, y, learning_rate):
+        if self.n_hidden_layers == 0:  # if no hidden layers
+            output_error = self.outputs[-1] - y.reshape(-1, 1)
+            weight_update = learning_rate * np.dot(output_error, self.outputs[0].T)
+            return [weight_update], [output_error]
+        else:  # if > 0 hidden layers
+            deltas = []
+            weight_updates = []
+
+            output_error = self.outputs[-1] - y.reshape(-1, 1)
+            delta = output_error
+            deltas.insert(0, delta)
+
+            for i in range(len(self.weights) - 1, 0, -1):
+                delta = np.dot(self.weights[i].T, delta) * d_sigmoid(self.outputs[i])
+                deltas.insert(0, delta)
+
+            for i in range(len(self.weights)):
+                weight_update = learning_rate * np.dot(deltas[i], self.outputs[i].T)
+                weight_updates.append(weight_update)
+
+            return weight_updates, deltas
+
+    def train(self, X, y, epochs, batchsize, learning_rate, momentum):
+        for _ in range(epochs):
+            permutation = np.random.permutation(X.shape[0])
+            X_shuffled = X[permutation]
+            y_shuffled = y[permutation]
+
+            for i in range(0, X.shape[0], batchsize):
+                X_batch = X_shuffled[i:i + batchsize]
+                y_batch = y_shuffled[i:i + batchsize]
+                self._train(X_batch, y_batch, learning_rate, momentum)
+
+    def _train(self, X, y, learning_rate, momentum):
+        n = len(X)
+        weight_updates_sum = [np.zeros_like(w) for w in self.weights]
+        bias_updates_sum = [np.zeros_like(b) for b in self.biases]
+
+        for i in range(n):
+            self.feedforward(X[i])
+            weight_updates, deltas = self.backprop(y[i], learning_rate)
+
+            for ii in range(len(self.weights)):
+                # accumulate updates over batch
+                weight_updates_sum[ii] += weight_updates[ii]
+                bias_updates_sum[ii] += deltas[ii]
+
+        for i in range(len(self.weights)):
+            weight_gradient = weight_updates_sum[i] / n
+            bias_gradient = bias_updates_sum[i] / n
+
+            self.weight_velocities[i] = momentum * self.weight_velocities[i] - weight_gradient
+            self.bias_velocities[i] = momentum * self.bias_velocities[i] - bias_gradient
+
+            self.weights[i] += self.weight_velocities[i]
+            self.biases[i] += self.bias_velocities[i]
+
+    def predict(self, X):
+        predictions = []
+        for x in X:
+            outputs = self.feedforward(x)
+            output = outputs[-1]
+            predicted_class = np.argmax(output)
+            predictions.append(predicted_class)
+        return predictions
+
 
 class ffNNRegression:
     def __init__(self, X, Y, n_input, n_hidden, n_hidden_layers, n_output=1):
