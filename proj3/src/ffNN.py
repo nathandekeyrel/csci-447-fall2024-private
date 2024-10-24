@@ -5,10 +5,10 @@ def ffNNClassification():
     pass
 
 class ffNNRegression:
-    def __init__(self, n_input, n_hidden, n_hidden_layers, n_output=1):
+    def __init__(self, X, Y, n_input, n_hidden, n_hidden_layers, n_output=1):
         #initialize the neural network nodes here
-        self.X = None
-        self.Y = None
+        self.X = X
+        self.Y = Y
         self.layers = n_hidden_layers + 2
         self.weights = []
         self.biases = []
@@ -21,6 +21,8 @@ class ffNNRegression:
         dims[i + 1][0] = n_output
         self.weights = [(np.random.rand(x, y) + -0.5) * 0.002 for x, y in dims]
         self.biases = [(np.random.rand(x, 1) + -0.5) * 0.002 for x, _ in dims]
+        self.dw_prev = [np.zeros((x, y)) for x, y in dims]
+        self.db_prev = [np.zeros((x, 1)) for x, _ in dims]
         pass
 
     def feedforward(self, x : np.ndarray):
@@ -55,29 +57,37 @@ class ffNNRegression:
             delta[i] = d_sigmoid(self.outputs[i+1]) * errors[i].T * l
         return delta
 
-    def train(self, X, Y, epochs, batchsize, l):
+    def train(self, epochs, batchsize, l, a):
         for _ in range(epochs):
             #find some way to select the X and Y values for the batches
-            indices = np.random.choice(X.shape[0], batchsize, replace=False)
-            X_t = np.array(X[indices])
-            Y_t = np.array(Y[indices])
-            self._train(X_t, Y_t, l)
+            indices = np.random.choice(self.X.shape[0], batchsize, replace=False)
+            X_t = np.array(self.X[indices])
+            Y_t = np.array(self.Y[indices])
+            self._train(X_t, Y_t, l, a)
         pass
 
-    def _train(self, X, Y, l):
-        dt = []
-        n = len(X)
+    def _train(self, X_t, Y_t, l, a):
+        dw = [] # list that holds our changes for our weights
+        db = [] # list that holds our changes for our biases
+        n = len(X_t) # number of training examples
+        # initialize dt to zero with the dimensions we are expecting from the deltas reported by backprop
         for mat in self.weights:
-            dt.append(np.zeros((len(mat), 1)))
+            dw.append(np.zeros(mat.shape))
+            db.append(np.zeros((len(mat), 1)))
+        # iterate through each training example and add the results from backprop to dt
         for i in range(n):
-            outs = self.feedforward(X[i])
-            ds = self.backprop(Y[i], outs[-1][0][0], l)
-            for i in range(len(dt)):
-                dt[i] += ds[i]
-        
-        for i in range(len(dt)):
-            self.weights[i] += np.dot(dt[i], outs[i].T) / n
-            self.biases[i] += dt[i] / n
+            outs = self.feedforward(X_t[i])
+            ds = self.backprop(Y_t[i], outs[-1][0][0], l)
+            for i in range(self.layers - 1):
+                dw[i] += np.dot(ds[i], outs[i].T)
+                db[i] += ds[i]
+        for i in range(self.layers - 1):
+            dw[i] /= n
+            db[i] /= n
+            self.weights[i] += (dw[i] + (a * self.dw_prev[i]))
+            self.biases[i] += (db[i] + (a * self.db_prev[i]))
+        self.dw_prev = dw
+        self.db_prev = db
 
     def predict(self, X):
         return [self.feedforward(x)[-1][0][0] for x in X]
