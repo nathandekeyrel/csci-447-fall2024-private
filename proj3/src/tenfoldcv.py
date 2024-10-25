@@ -1,8 +1,7 @@
 import copy
 import numpy as np
 import random
-
-## TODO needs to be updated for current project
+import ffNN as nn
 
 def kfold(X, Y, k):
     """Stratify and break the data into k folds
@@ -41,7 +40,7 @@ def kfold(X, Y, k):
     return Xs, Ys
 
 
-def _crossvalidationC(i, X, Y, nClasses, k, cl):
+def _crossvalidationC(i, X, Y, epochs, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum):
     """Perform cross-validation on a single fold for a given classifier
 
     :param i: Index of the fold to use as the holdout set
@@ -61,42 +60,41 @@ def _crossvalidationC(i, X, Y, nClasses, k, cl):
     # merge the remaining data for the training set
     Xt = np.array(mergedata(Xc))
     Yt = np.array(mergedata(Yc))
-    # fit the model to the training data
-    cl.fit(Xt, Yt)
-    # if there is an edit method, run that using the hold out set
-    if hasattr(cl, 'edit') and callable(cl.edit):
-        cl.edit(Xh, Yh)
+    #initialize the classifier
+    cl = nn.ffNNClassification(len(Xt[0]), nodes_per_hidden_layer, hidden_layers, max(Yt) + 1)
+    # train the model with the training data
+    cl.train(Xt, Yt, epochs, batch_size, learning_rate, momentum)
     # get the predictions
-    predictions = np.array(cl.predict(Xh, k))
+    predictions = np.array(cl.predict(Xh))
     # return the actual values and the predictions
     return copy.copy(Yh), predictions
 
 
-def tenfoldcrossvalidationC(cl, X, Y, k):
+def tenfoldcrossvalidationC(X, Y, epochs, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum):
     """Perform 10-fold cross-validation for a classifier
 
-    :param cl: Classifier object
     :param X: Feature vectors
     :param Y: Target values
-    :param k: Number of neighbors for kNN
     :return: List of tuples (actual values, predictions) for each fold
     """
     nClasses = np.max(Y) + 1
     X, Y = kfold(X, Y, 10)
-    results = [_crossvalidationC(i, X, Y, nClasses, k, cl) for i in range(10)]
+    results = [_crossvalidationC(i, X, Y, epochs, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum) for i in range(10)]
     return results
 
 
-def _crossvalidationR(i, X, Y, sig, k, re, e=0):
+def _crossvalidationR(i, X, Y, epochs, nodes_per_hidden_layer, hidden_layers, batch_size, learning_rate, momentum):
     """Perform cross-validation on a single fold for a given regression model
 
     :param i: Index of the fold to use as the holdout set
     :param X: List of feature vector folds
     :param Y: List of target value folds
-    :param sig: Sigma value for the regression model
-    :param k: Number of neighbors for kNN
-    :param re: Regression model object
-    :param e: Epsilon value for edited kNN (default 0)
+    :param epochs: the number of epochs to train the model for
+    :param nodes_per_hidden_layer: the number of nodes for each hidden layer
+    :param hidden_layers: the number of hidden layers to use
+    :param batch_size: the size of the batches for training
+    :param learning_rate: the coefficient for calculating gradient strength
+    :param momentum: the momentum of the learning rate
     :return: Tuple of (actual values, predictions) for the holdout set
     """
     # copy the X and Y arrays to keep the sample data intact
@@ -108,18 +106,17 @@ def _crossvalidationR(i, X, Y, sig, k, re, e=0):
     # merge the remaining data for the training set
     Xt = mergedata(Xc)
     Yt = mergedata(Yc)
-    # fit the model to the training data
-    re.fit(Xt, Yt)
-    # if there is an edit method, run that using the hold out set
-    if hasattr(re, 'edit') and callable(re.edit):
-        re.edit(Xh, Yh, sig, e)
+    # initialize the regressor
+    re = nn.ffNNRegression(Xt, Yt, len(Xt[0]), nodes_per_hidden_layer, hidden_layers)
+    # train the model with the training data
+    re.train(epochs, batch_size, learning_rate, momentum)
     # get the predictions
-    predictions = np.array(re.predict(Xh, k, sig))
+    predictions = re.predict(Xh)
     # return a tuple containing the hold out target values and the predictions
     return copy.copy(Yh), predictions
 
 
-def tenfoldcrossvalidationR(re, X, Y, k, sig, e=0):
+def tenfoldcrossvalidationR(X, Y, epochs, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum):
     """Perform 10-fold cross-validation for a regression model
 
     :param re: Regression model object
@@ -131,7 +128,7 @@ def tenfoldcrossvalidationR(re, X, Y, k, sig, e=0):
     :return: List of tuples (actual values, predictions) for each fold
     """
     X, Y = kfold(X, Y, 10)
-    results = [_crossvalidationR(i, X, Y, sig, k, re, e) for i in range(10)]
+    results = [_crossvalidationR(i, X, Y, epochs, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum) for i in range(10)]
     return results
 
 

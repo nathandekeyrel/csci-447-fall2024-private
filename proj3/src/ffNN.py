@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.preprocessing import OneHotEncoder
 
 
 class ffNNClassification:
@@ -9,6 +10,7 @@ class ffNNClassification:
         self.n_output = n_output
         self.layers = n_hidden_layers + 2
         self.outputs = None
+        self.encoder = None
         self.biases = []
         self.weights = []
         self.weight_velocities = []
@@ -23,11 +25,18 @@ class ffNNClassification:
                 layer_sizes.append([n_hidden, n_hidden])  # hidden -> hidden
             layer_sizes.append([n_output, n_hidden])  # last hidden -> output
 
-        self.weights = [(np.random.rand(x, y) + -0.5) * 0.1 for x, y in layer_sizes]
-        self.biases = [(np.random.rand(x, 1) + -0.5) * 0.1 for x, _ in layer_sizes]
+        self.weights = [(np.random.rand(x, y) + -0.5) * 0.002 for x, y in layer_sizes]
+        self.biases = [(np.random.rand(x, 1) + -0.5) * 0.002 for x, _ in layer_sizes]
 
         self.weight_velocities = [np.zeros_like(w) for w in self.weights]
         self.bias_velocities = [np.zeros_like(b) for b in self.biases]
+
+    def _encode(self, y):
+        if self.encoder is None:
+            self.encoder = OneHotEncoder(sparse_output=False)
+            self.encoder.fit(np.arange(self.n_output).reshape(-1, 1))
+
+        return self.encoder.transform(y.reshape(-1, 1))
 
     @staticmethod
     def softmax(x):
@@ -52,15 +61,17 @@ class ffNNClassification:
         return self.outputs
 
     def backprop(self, y, learning_rate):
+        y_onehot = self._encode(y)
+
         if self.n_hidden_layers == 0:  # if no hidden layers
-            output_error = self.outputs[-1] - y.reshape(-1, 1)
+            output_error = self.outputs[-1] - y_onehot.reshape(-1, 1)
             weight_update = learning_rate * np.dot(output_error, self.outputs[0].T)
             return [weight_update], [output_error]
         else:  # if > 0 hidden layers
             deltas = []
             weight_updates = []
 
-            output_error = self.outputs[-1] - y.reshape(-1, 1)
+            output_error = self.outputs[-1] - y_onehot.reshape(-1, 1)
             delta = output_error
             deltas.insert(0, delta)
 

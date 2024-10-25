@@ -69,9 +69,7 @@ def _preprocess_cancer(filepath):
         4: 1
     }
 
-    y_numeric = df['Class'].map(class_mapping).values  # Target is 'Class'
-    encoder = OneHotEncoder(sparse_output=False)
-    y = encoder.fit_transform(y_numeric.reshape(-1, 1))  # make y vals 2d before encoding
+    y = df['Class'].map(class_mapping).values  # Target is 'Class'
 
     numeric_columns = [col for col in df.columns if col not in ['Id', 'Class']]
     df_normalized = normalize_numeric_columns(df, numeric_columns)
@@ -98,14 +96,11 @@ def _preprocess_glass(filepath):
         1: 0,
         2: 1,
         3: 2,
-        4: 3,
-        5: 4,
-        6: 5,
-        7: 6
+        5: 3,
+        6: 4,
+        7: 5
     }
-    y_numeric = df['Type'].map(class_mapping).values
-    encoder = OneHotEncoder(sparse_output=False)
-    y = encoder.fit_transform(y_numeric.reshape(-1, 1))  # make y vals 2d before encoding
+    y = df['Type'].map(class_mapping).values
 
     numeric_columns = [col for col in df.columns if col not in ['Id', 'Type']]
     df_normalized = normalize_numeric_columns(df, numeric_columns)
@@ -136,9 +131,7 @@ def _preprocess_soybean(filepath):
         'D3': 2,
         'D4': 3
     }
-    y_numeric = df['Class'].map(class_mapping).values  # target is class
-    encoder = OneHotEncoder(sparse_output=False)
-    y = encoder.fit_transform(y_numeric.reshape(-1, 1))  # make y vals 2d before encoding
+    y = df['Class'].map(class_mapping).values  # target is class
 
     X = df.drop('Class', axis=1)
     encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
