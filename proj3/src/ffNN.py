@@ -17,12 +17,13 @@ class ffNNClassification:
         self.n_output = n_output
         self.layers = n_hidden_layers + 2
         self.outputs = None
-        self.encoder = None
         self.biases = []
         self.weights = []
         self.weight_velocities = []
         self.bias_velocities = []
         layer_sizes = []
+        self.encoder = OneHotEncoder(sparse_output=False)
+        self.encoder.fit(np.arange(self.n_output).reshape(-1, 1))
 
         if n_hidden_layers == 0:
             layer_sizes.append([n_output, n_input])  # direct input -> output
@@ -39,19 +40,6 @@ class ffNNClassification:
         # initialize zero arrays in similar type and shape to weight and bias vectors
         self.weight_velocities = [np.zeros_like(w) for w in self.weights]
         self.bias_velocities = [np.zeros_like(b) for b in self.biases]
-
-    def _encode(self, y):
-        """One-hot encode the target values from the dataset, classification
-        uses cross-entropy loss for calculating error, i.e. y_pred - y_true
-
-        :param y: target values from dataset
-        :return: one-hot encoded targets in correct shape for matrix calculations
-        """
-        if self.encoder is None:
-            self.encoder = OneHotEncoder(sparse_output=False)
-            self.encoder.fit(np.arange(self.n_output).reshape(-1, 1))
-
-        return self.encoder.transform(y.reshape(-1, 1))
 
     @staticmethod
     def softmax(x):
@@ -88,16 +76,15 @@ class ffNNClassification:
 
         return self.outputs
 
-    def backprop(self, y, learning_rate):
+    def backprop(self, y_onehot, learning_rate):
         """Performs backpropagation through the neural network to compute weight updates
         based on prediction error. For networks with hidden layers, uses the chain rule to
         calculate gradients at each layer, working backwards from the output.
 
-        :param y: target values from dataset
+        :param y_onehot: one-hot encoded target values from dataset
         :param learning_rate: step size for gradient update
         :return: tuple of weight updates and deltas for each layer
         """
-        y_onehot = self._encode(y)
 
         if self.n_hidden_layers == 0:  # if no hidden layers
             output_error = self.outputs[-1] - y_onehot.reshape(-1, 1)
@@ -136,26 +123,28 @@ class ffNNClassification:
         :param momentum: coefficient for momentum to escape local minima
         :return:
         """
+        y_onehot = self.encoder.transform(y.reshape(-1, 1))
+
         for _ in range(epochs):
             # prevent learning order bias by shuffling data
             permutation = np.random.permutation(X.shape[0])
             X_shuffled = X[permutation]
-            y_shuffled = y[permutation]
+            y_onehot_shuffled = y_onehot[permutation]
 
             # process data in mini-batches to update network weights
             for i in range(0, X.shape[0], batchsize):
                 # extract current batch using slice
                 X_batch = X_shuffled[i:i + batchsize]
-                y_batch = y_shuffled[i:i + batchsize]
+                y_batch = y_onehot_shuffled[i:i + batchsize]
                 # train on current batch using helper method
                 self._train(X_batch, y_batch, learning_rate, momentum)
 
-    def _train(self, X, y, learning_rate, momentum):
+    def _train(self, X, y_onehot, learning_rate, momentum):
         """Helper method that performs training on a batch of samples. Updates network
         weights and biases using accumulated gradients over the batch with momentum.
 
         :param X: input features from dataset
-        :param y: target values from dataset
+        :param y_onehot: target values from dataset
         :param learning_rate: step size for gradient descent
         :param momentum: coefficient for momentum to escape local minima
         :return:
@@ -167,7 +156,7 @@ class ffNNClassification:
 
         for i in range(n):
             self.feedforward(X[i])  # forward pass to compute activations
-            weight_updates, deltas = self.backprop(y[i], learning_rate)  # backwards pass to compute gradients
+            weight_updates, deltas = self.backprop(y_onehot[i], learning_rate)  # backwards pass to compute gradients
 
             # accumulate updates over batch
             for ii in range(len(self.weights)):
