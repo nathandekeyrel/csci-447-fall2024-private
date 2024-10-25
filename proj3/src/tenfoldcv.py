@@ -19,7 +19,11 @@ def kfold(X, Y, k):
     random.shuffle(Vs)
     # sort the vectors in Vs by their class. Since the sort is stable, the randomization
     # introduced by the shuffle in the previous step will be preserved
-    Vs.sort(key=lambda x: x[-1])
+    if isinstance(Y, np.ndarray):
+        sortkey = lambda x: np.argmax(x[-1])
+    else:
+        sortkey = lambda x: x[-1]
+    Vs.sort(key=sortkey)
     # initialize our list of vector lists Xs and Ys, which will represent the folds
     Xs = [[] for _ in range(k)]
     Ys = [[] for _ in range(k)]
