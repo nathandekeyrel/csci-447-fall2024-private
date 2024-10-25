@@ -4,6 +4,13 @@ from sklearn.preprocessing import OneHotEncoder
 
 class ffNNClassification:
     def __init__(self, n_input, n_hidden, n_hidden_layers, n_output):
+        """Initialize the neural network
+
+        :param n_input: number of input nodes
+        :param n_hidden: number of nodes in hidden layer
+        :param n_hidden_layers: number of hidden layers
+        :param n_output: number of output nodes
+        """
         self.n_input = n_input
         self.n_hidden = n_hidden
         self.n_hidden_layers = n_hidden_layers
@@ -25,13 +32,21 @@ class ffNNClassification:
                 layer_sizes.append([n_hidden, n_hidden])  # hidden -> hidden
             layer_sizes.append([n_output, n_hidden])  # last hidden -> output
 
+        # initialize small weights and biases to help with vanishing gradient problem
         self.weights = [(np.random.rand(x, y) + -0.5) * 0.002 for x, y in layer_sizes]
         self.biases = [(np.random.rand(x, 1) + -0.5) * 0.002 for x, _ in layer_sizes]
 
+        # initialize zero arrays in similar type and shape to weight and bias vectors
         self.weight_velocities = [np.zeros_like(w) for w in self.weights]
         self.bias_velocities = [np.zeros_like(b) for b in self.biases]
 
     def _encode(self, y):
+        """One-hot encode the target values from the dataset, classification
+        uses cross-entropy loss for calculating error, i.e. y_pred - y_true
+
+        :param y: target values from dataset
+        :return: one-hot encoded targets in correct shape for matrix calculations
+        """
         if self.encoder is None:
             self.encoder = OneHotEncoder(sparse_output=False)
             self.encoder.fit(np.arange(self.n_output).reshape(-1, 1))
@@ -40,10 +55,23 @@ class ffNNClassification:
 
     @staticmethod
     def softmax(x):
+        """Converts a vector of real numbers into a probability distribution over multiple classes.
+        The probabilities of each value are proportional to the relative scale of each value in the vector.
+
+        :param x: input array of real values
+        :return: vector of probability scores that sum to 1
+        """
         exp_x = np.exp(x - np.max(x))
         return exp_x / exp_x.sum()
 
     def feedforward(self, x: np.ndarray):
+        """Performs forward propagation through the neural network, computing activations
+        at each layer using the current weights and biases. The hidden layers use sigmoid,
+        the output layer uses softmax
+
+        :param x: input features from dataset
+        :return: probability distribution over classes
+        """
         self.outputs = []
         self.outputs.append(x.reshape(-1, 1))
 
@@ -61,6 +89,14 @@ class ffNNClassification:
         return self.outputs
 
     def backprop(self, y, learning_rate):
+        """Performs backpropagation through the neural network to compute weight updates
+        based on prediction error. For networks with hidden layers, uses the chain rule to
+        calculate gradients at each layer, working backwards from the output.
+
+        :param y: target values from dataset
+        :param learning_rate: step size for gradient update
+        :return: tuple of weight updates and deltas for each layer
+        """
         y_onehot = self._encode(y)
 
         if self.n_hidden_layers == 0:  # if no hidden layers
@@ -71,14 +107,16 @@ class ffNNClassification:
             deltas = []
             weight_updates = []
 
+            # calculate initial output layer error
             output_error = self.outputs[-1] - y_onehot.reshape(-1, 1)
-            delta = output_error
+            delta = output_error  # delta is error at output layer
             deltas.insert(0, delta)
 
-            for i in range(len(self.weights) - 1, 0, -1):
+            for i in range(len(self.weights) - 1, 0, -1):  # backprop through layers
                 delta = np.dot(self.weights[i].T, delta) * d_sigmoid(self.outputs[i])
                 deltas.insert(0, delta)
 
+            # compute weight updates for all layers using deltas
             for i in range(len(self.weights)):
                 weight_update = learning_rate * np.dot(deltas[i], self.outputs[i].T)
                 weight_updates.append(weight_update)
@@ -86,46 +124,82 @@ class ffNNClassification:
             return weight_updates, deltas
 
     def train(self, X, y, epochs, batchsize, learning_rate, momentum):
+        """Trains the neural network using mini-batch gradient descent.
+        For each epoch, shuffles data randomly and processes it into
+        batches to update weights and biases using backpropagation.
+
+        :param X: input features from dataset
+        :param y: target values from dataset
+        :param epochs: number of complete passes through training dataset
+        :param batchsize: number of samples processed before updating weights
+        :param learning_rate: step size for gradient descent
+        :param momentum: coefficient for momentum to escape local minima
+        :return:
+        """
         for _ in range(epochs):
+            # prevent learning order bias by shuffling data
             permutation = np.random.permutation(X.shape[0])
             X_shuffled = X[permutation]
             y_shuffled = y[permutation]
 
+            # process data in mini-batches to update network weights
             for i in range(0, X.shape[0], batchsize):
+                # extract current batch using slice
                 X_batch = X_shuffled[i:i + batchsize]
                 y_batch = y_shuffled[i:i + batchsize]
+                # train on current batch using helper method
                 self._train(X_batch, y_batch, learning_rate, momentum)
 
     def _train(self, X, y, learning_rate, momentum):
-        n = len(X)
+        """Helper method that performs training on a batch of samples. Updates network
+        weights and biases using accumulated gradients over the batch with momentum.
+
+        :param X: input features from dataset
+        :param y: target values from dataset
+        :param learning_rate: step size for gradient descent
+        :param momentum: coefficient for momentum to escape local minima
+        :return:
+        """
+        n = len(X)  # batch size
+        # initialize arrays to accumulate gradients over batch
         weight_updates_sum = [np.zeros_like(w) for w in self.weights]
         bias_updates_sum = [np.zeros_like(b) for b in self.biases]
 
         for i in range(n):
-            self.feedforward(X[i])
-            weight_updates, deltas = self.backprop(y[i], learning_rate)
+            self.feedforward(X[i])  # forward pass to compute activations
+            weight_updates, deltas = self.backprop(y[i], learning_rate)  # backwards pass to compute gradients
 
+            # accumulate updates over batch
             for ii in range(len(self.weights)):
-                # accumulate updates over batch
                 weight_updates_sum[ii] += weight_updates[ii]
                 bias_updates_sum[ii] += deltas[ii]
 
+        # update weights and biases using averaged gradients and momentum
         for i in range(len(self.weights)):
             weight_gradient = weight_updates_sum[i] / n
             bias_gradient = bias_updates_sum[i] / n
 
+            # update velocities using momentum term and current gradients
             self.weight_velocities[i] = momentum * self.weight_velocities[i] - weight_gradient
             self.bias_velocities[i] = momentum * self.bias_velocities[i] - bias_gradient
 
+            # apply updates using computed velocities
             self.weights[i] += self.weight_velocities[i]
             self.biases[i] += self.bias_velocities[i]
 
     def predict(self, X):
+        """Makes class predictions for multiple input samples using the trained network.
+        For each sample, performs forward propagation and selects the class with the highest
+        probability from the softmax output.
+
+        :param X:
+        :return:
+        """
         predictions = []
         for x in X:
-            outputs = self.feedforward(x)
-            output = outputs[-1]
-            predicted_class = np.argmax(output)
+            outputs = self.feedforward(x)  # get output probs for current sample
+            output = outputs[-1]  # get final layer outputs (the prob dist from softmax)
+            predicted_class = np.argmax(output)  # select class with highest prob
             predictions.append(predicted_class)
         return predictions
 
