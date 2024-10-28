@@ -40,15 +40,15 @@ def kfold(X, Y, k):
     return Xs, Ys
 
 
-def _crossvalidationC(i, X, Y, epochs, nodes_per_hidden_layer, hidden_layers, batch_size, learning_rate, momentum):
+def _crossvalidationC(i, X, Y, epochs, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum):
     """Perform cross-validation on a single fold for a given classifier
 
     :param i: Index of the fold to use as the holdout set
     :param X: List of feature vector folds
     :param Y: List of target value folds
     :param epochs: the number of epochs to train the model for
-    :param nodes_per_hidden_layer: the number of nodes for each hidden layer
     :param hidden_layers: the number of hidden layers to use
+    :param nodes_per_hidden_layer: the number of nodes for each hidden layer
     :param batch_size: the size of the batches for training
     :param learning_rate: the coefficient for calculating gradient strength
     :param momentum: the momentum of the learning rate
@@ -78,6 +78,12 @@ def tenfoldcrossvalidationC(X, Y, epochs, hidden_layers, nodes_per_hidden_layer,
 
     :param X: Feature vectors
     :param Y: Target values
+    :param epochs: the number of epochs to train the model for
+    :param hidden_layers: the number of hidden layers to use
+    :param nodes_per_hidden_layer: the number of nodes for each hidden layer
+    :param batch_size: the size of the batches for training
+    :param learning_rate: the coefficient for calculating gradient strength
+    :param momentum: the momentum of the learning rate
     :return: List of tuples (actual values, predictions) for each fold
     """
     nClasses = np.max(Y) + 1
@@ -86,15 +92,15 @@ def tenfoldcrossvalidationC(X, Y, epochs, hidden_layers, nodes_per_hidden_layer,
     return results
 
 
-def _crossvalidationR(i, X, Y, epochs, nodes_per_hidden_layer, hidden_layers, batch_size, learning_rate, momentum):
+def _crossvalidationR(i, X, Y, epochs, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum):
     """Perform cross-validation on a single fold for a given regression model
 
     :param i: Index of the fold to use as the holdout set
     :param X: List of feature vector folds
     :param Y: List of target value folds
     :param epochs: the number of epochs to train the model for
-    :param nodes_per_hidden_layer: the number of nodes for each hidden layer
     :param hidden_layers: the number of hidden layers to use
+    :param nodes_per_hidden_layer: the number of nodes for each hidden layer
     :param batch_size: the size of the batches for training
     :param learning_rate: the coefficient for calculating gradient strength
     :param momentum: the momentum of the learning rate
@@ -125,9 +131,12 @@ def tenfoldcrossvalidationR(X, Y, epochs, hidden_layers, nodes_per_hidden_layer,
     :param re: Regression model object
     :param X: Feature vectors
     :param Y: Target values
-    :param k: Number of neighbors for kNN
-    :param sig: Sigma value for the regression model
-    :param e: Epsilon value for edited kNN (default 0)
+    :param epochs: the number of epochs to train the model for
+    :param nodes_per_hidden_layer: the number of nodes for each hidden layer
+    :param hidden_layers: the number of hidden layers to use
+    :param batch_size: the size of the batches for training
+    :param learning_rate: the coefficient for calculating gradient strength
+    :param momentum: the momentum of the learning rate
     :return: List of tuples (actual values, predictions) for each fold
     """
     X, Y = kfold(X, Y, 10)
