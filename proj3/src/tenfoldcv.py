@@ -36,15 +36,18 @@ def kfold(X, Y, k):
     return Xs, Ys
 
 
-def _crossvalidationC(i, X, Y, epochs, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum):
+def _crossvalidationC(i, X, Y, epochs, nodes_per_hidden_layer, hidden_layers, batch_size, learning_rate, momentum):
     """Perform cross-validation on a single fold for a given classifier
 
     :param i: Index of the fold to use as the holdout set
     :param X: List of feature vector folds
     :param Y: List of target value folds
-    :param nClasses: Number of classes in the dataset
-    :param k: Number of neighbors for kNN
-    :param cl: Classifier object
+    :param epochs: the number of epochs to train the model for
+    :param nodes_per_hidden_layer: the number of nodes for each hidden layer
+    :param hidden_layers: the number of hidden layers to use
+    :param batch_size: the size of the batches for training
+    :param learning_rate: the coefficient for calculating gradient strength
+    :param momentum: the momentum of the learning rate
     :return: Tuple of (actual values, predictions) for the holdout set
     """
     # copy the X and Y arrays to keep the sample data intact
