@@ -3,10 +3,13 @@ import ffNN as fn
 import evaluating as ev
 import tenfoldcv as xv
 import utils as ut
+import tuning as tu
+import nutuning as ntu
 import numpy as np
 from numpy import mean, square
 
-np.seterr(all='raise')
+# np.seterr(all='raise')
+test = "tuning"
 
 def r2(y_true, y_pred):
   m = mean(y_true)
@@ -20,23 +23,35 @@ def r2(y_true, y_pred):
 
 X, Y = pr.preprocess_data("data/machine.data")
 
-X_train, Y_train, X_test, Y_test = ut.generateTestData(X, Y)
+if test == "tuning":
+  learning_rate, batch_size, n_hidden, momentum = ntu.tuneFFNNRegression(X, Y, 3)
+  print(learning_rate, batch_size, n_hidden, momentum)
+  pass
 
-re = fn.ffNNRegression(X_train, Y_train, len(X[0]), len(X[0]) * 2, 3)
-# cl = fn.ffNNClassification(len(X[0]), len(X[0]) * 2, 1, len(Y[0]))
+elif test == "reg":
+  X_train, Y_train, X_test, Y_test = ut.generateTestData(X, Y)
 
-# f = open("output/soybean.csv", 'w')
-ept = 100
-epochs = 0
-while True:
-# for i in range(1000):
-  epochs += ept
-  re.train(ept, 100, .0001, 1)
-  p = re.predict(X_test)
-  # cl.train(X_train, Y_train, ept, 10, 0.01, 0.0)
-  # p = cl.predict(X_test)
-  print("epoch: " + str(epochs))
-  print(ev.mse(Y_test, p))
-  print(r2(Y_test, p))
-  # Y_true = np.array([np.argmax(y) for y in Y_test])
-  # f.write(str(epochs) + "," + str(ev.zero_one_loss(Y_true, p)) + "\n")
+  re = fn.ffNNRegression(X_train, Y_train, len(X[0]), len(X[0]) * 2, 5)
+  # cl = fn.ffNNClassification(len(X[0]), len(X[0]) * 2, 1, len(Y[0]))
+
+
+
+  steps = 0
+  bestresults = np.square(np.max(Y_test) - np.min(Y_test))
+  prevresults = bestresults
+  eps = 1
+  epochs = 0
+  while steps < 20:
+    epochs += eps
+    steps += 1
+    re.train(eps, len(X_train), .2, .5)
+    p = re.predict(X_test)
+    results = ev.mse(Y_test, p)
+    if results < bestresults:
+      bestresults = results
+      steps = 0
+    print("epochs: " + str(epochs))
+    print(results)
+  print(epochs)
+  print(bestresults)
+
