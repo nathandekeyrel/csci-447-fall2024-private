@@ -285,8 +285,4 @@ def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
 def d_sigmoid(x):
-    try:
-        r = x * (1 - x)
-    except:
-        r = 0
-    return r
+    return x * (1 - x)
