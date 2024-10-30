@@ -9,9 +9,15 @@ import numpy as np
 from numpy import mean, square
 
 # np.seterr(all='raise')
-test = "fullreg"
+test = "classcv"
 
 X, Y = pr.preprocess_data("data/abalone.data")
+
+Xc, Yc = pr.preprocess_data("data/breast-cancer-wisconsin.data")
+
+if test == "classcv":
+  out = xv.tenfoldcrossvalidationC(Xc, Yc, 3, len(Xc[0]), 20, 1.0, 0.0)
+  print(np.mean([ev.zero_one_loss(yt, yp) for yt, yp in out]))
 
 if test == "fullreg":
   learning_rate, batch_size, n_hidden, momentum = ntu.tuneFFNNRegression(X, Y, 3)
