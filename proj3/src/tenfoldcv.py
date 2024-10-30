@@ -41,7 +41,7 @@ def kfold(X, Y, k):
     return Xs, Ys
 
 
-def _crossvalidationC(i, X, Y, epochs, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum):
+def _crossvalidationC(i, X, Y, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum):
     """Perform cross-validation on a single fold for a given classifier
 
     :param i: Index of the fold to use as the holdout set
@@ -67,14 +67,24 @@ def _crossvalidationC(i, X, Y, epochs, hidden_layers, nodes_per_hidden_layer, ba
     #initialize the classifier
     cl = nn.ffNNClassification(len(Xt[0]), nodes_per_hidden_layer, hidden_layers, max(Yt) + 1)
     # train the model with the training data
-    cl.train(Xt, Yt, epochs, batch_size, learning_rate, momentum)
-    # get the predictions
-    predictions = np.array(cl.predict(Xh))
+    bestperf = 1
+    bestpredictions = None
+    epochs_since_last_improvement = 0
+    while epochs_since_last_improvement < 10:
+        epochs_since_last_improvement += 1
+        cl.train(Xt, Yt, 1, batch_size, learning_rate, momentum)
+        # get the predictions
+        predictions = cl.predict(Xh)
+        perf = ev.zero_one_loss(Yh, predictions)
+        if perf < bestperf:
+            bestperf = perf
+            bestpredictions = predictions
+            epochs_since_last_improvement = 0
     # return the actual values and the predictions
-    return copy.copy(Yh), predictions
+    return copy.copy(Yh), bestpredictions
 
 
-def tenfoldcrossvalidationC(X, Y, epochs, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum):
+def tenfoldcrossvalidationC(X, Y, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum):
     """Perform 10-fold cross-validation for a classifier
 
     :param X: Feature vectors
@@ -89,7 +99,7 @@ def tenfoldcrossvalidationC(X, Y, epochs, hidden_layers, nodes_per_hidden_layer,
     """
     nClasses = np.max(Y) + 1
     X, Y = kfold(X, Y, 10)
-    results = [_crossvalidationC(i, X, Y, epochs, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum) for i in range(10)]
+    results = [_crossvalidationC(i, X, Y, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum) for i in range(10)]
     return results
 
 
@@ -123,7 +133,7 @@ def _crossvalidationR(i, X, Y, hidden_layers, nodes_per_hidden_layer, batch_size
     bestperf = 0
     bestpredictions = None
     epochs_since_last_improvement = 0
-    while epochs_since_last_improvement < 20:
+    while epochs_since_last_improvement < 10:
         epochs_since_last_improvement += 1
         re.train(1, batch_size, learning_rate, momentum)
         # get the predictions
