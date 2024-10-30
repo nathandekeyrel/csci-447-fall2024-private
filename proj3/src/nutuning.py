@@ -8,7 +8,7 @@ import sys
 from sklearn.metrics import r2_score
 
 #ranges for the hyperparameters to be tuned
-learning_rate = (-4, 1)
+learning_rate = (-2, 2)
 batches = (0, 1.0)
 n_hidden = (0.5, 2)
 momentum = (0, 1.0)
@@ -73,13 +73,15 @@ def tuneFFNNRegression(X, Y, n_hidden_layers):
     """
     Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
     n_inputs = len(X[0])
-    lrlist = np.power(10, (np.random.rand(testsize) * (learning_rate[1] - learning_rate[0]) + learning_rate[0]))
+    m = np.max(X)
+    lrlist = np.power(2, (np.random.rand(testsize) * (learning_rate[1] - learning_rate[0]) - learning_rate[1] - np.log2(m)))
     batchlist = (np.random.rand(testsize) * np.floor(len(X) * 0.81) + 1).astype(int)
     nhnlist = ((np.random.rand(testsize) * (n_hidden[1] - n_hidden[0]) + n_hidden[0]) * len(X[0])).astype(int)
     momlist = np.random.rand(testsize)
     perfarr = np.zeros(testsize)
     # perform 10-fold cross-validation
     for n in range(10):
+        print("Tuning set", n)
         X_train, Y_train = generateTrainingData(Xs, Ys, n)
         n_X = len(X_train)
         for i in range(testsize):
@@ -89,19 +91,23 @@ def tuneFFNNRegression(X, Y, n_hidden_layers):
             mom            = momlist[i]
             re = nn.ffNNRegression(X_train, Y_train, n_inputs, n_hidden_nodes, n_hidden_layers)
             # We train the model one epoch at a time until it stops improving
-            bestresults = np.square(np.max(Y_test) - np.min(Y_test))
+            # bestresults = np.square(np.max(Y_test) - np.min(Y_test))
+            bestresults = 0
             ephochs_since_last_improvement = 0
-            while ephochs_since_last_improvement < 20: # if it doesn't improve after 20 iterations it ends
+            epochs = 0
+            while ephochs_since_last_improvement < 10: # if it doesn't improve after 20 iterations it ends
+                epochs += 1
                 ephochs_since_last_improvement += 1
                 re.train(1, batch_size, learning, mom)
                 predictions = re.predict(X_test)
-                results = ev.mse(Y_test, predictions)
-                if results < bestresults:
+                results = 1 / ev.mse(Y_test, predictions)
+                if results > bestresults:
                     ephochs_since_last_improvement = 0
                     bestresults = results
             perfarr[i] += bestresults
+        print(perfarr)
     # get the idices and put them into a tuple. I got this off of chatgpt because I'm not spending 2 hours looking for the specific algorithm that does this
-    index = np.argmin(perfarr)
+    index = np.argmax(perfarr)
 
     return lrlist[index], batchlist[index], nhnlist[index], momlist[index]
 
