@@ -9,21 +9,21 @@ import numpy as np
 from numpy import mean, square
 
 # np.seterr(all='raise')
-test = "tuning"
+test = "fullreg"
 
-def r2(y_true, y_pred):
-  m = mean(y_true)
-  e2_s = 0
-  v2_s = 0
-  for i in range(len(y_true)):
-    e2_s += square(y_true[i] - y_pred[i])
-    v2_s += square(y_true[i] - m)
-  r = 1 - (e2_s / v2_s)
-  return r
+X, Y = pr.preprocess_data("data/abalone.data")
 
-X, Y = pr.preprocess_data("data/machine.data")
+if test == "fullreg":
+  learning_rate, batch_size, n_hidden, momentum = ntu.tuneFFNNRegression(X, Y, 3)
+  out = xv.tenfoldcrossvalidationR(X, Y, n_hidden, 3, batch_size, learning_rate, momentum)
+  print(np.mean([ev.mse(yt, yp) for yt, yp in out]))
 
-if test == "tuning":
+if test == "regcv":
+  out = xv.tenfoldcrossvalidationR(X, Y, 3, 61, 128, 0.001347, 0.3767)
+  print(np.mean([ev.mse(yt, yp) for yt, yp in out]))
+  pass
+
+if test == "regtuning":
   learning_rate, batch_size, n_hidden, momentum = ntu.tuneFFNNRegression(X, Y, 3)
   print(learning_rate, batch_size, n_hidden, momentum)
   pass
@@ -32,9 +32,6 @@ elif test == "reg":
   X_train, Y_train, X_test, Y_test = ut.generateTestData(X, Y)
 
   re = fn.ffNNRegression(X_train, Y_train, len(X[0]), len(X[0]) * 2, 5)
-  # cl = fn.ffNNClassification(len(X[0]), len(X[0]) * 2, 1, len(Y[0]))
-
-
 
   steps = 0
   bestresults = np.square(np.max(Y_test) - np.min(Y_test))
@@ -54,4 +51,3 @@ elif test == "reg":
     print(results)
   print(epochs)
   print(bestresults)
-
