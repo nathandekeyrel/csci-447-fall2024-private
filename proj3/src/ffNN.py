@@ -121,7 +121,6 @@ class ffNNClassification:
         :param batchsize: number of samples processed before updating weights
         :param learning_rate: step size for gradient descent
         :param momentum: coefficient for momentum to escape local minima
-        :return:
         """
         y_onehot = self.encoder.transform(y.reshape(-1, 1))
 
@@ -147,7 +146,6 @@ class ffNNClassification:
         :param y_onehot: target values from dataset
         :param learning_rate: step size for gradient descent
         :param momentum: coefficient for momentum to escape local minima
-        :return:
         """
         n = len(X)  # batch size
         # initialize arrays to accumulate gradients over batch
@@ -181,8 +179,8 @@ class ffNNClassification:
         For each sample, performs forward propagation and selects the class with the highest
         probability from the softmax output.
 
-        :param X:
-        :return:
+        :param X: input features from dataset
+        :return: class with the highest probability
         """
         predictions = []
         for x in X:
