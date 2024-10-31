@@ -7,14 +7,14 @@ import preprocess as pr
 import sys
 from sklearn.metrics import r2_score
 
-## TODO needs to be updated for current project
+#ranges for the hyperparameters to be tuned
+learning_rate = (-2, 2)
+batches = (0, 1.0)
+n_hidden = (0.5, 2)
+momentum = (0, 1.0)
 
-# global variables holding optimal k, sigma, and epsilon values
-learning_rate = [1, 3, 5, 7, 13, 15]
-batches = [0.25, 0.5, 1, 2]
-n_hidden = []
-momentum = []
-
+#the number of tests to run
+testsize = 100
 
 def generateStartingTestData(X, Y):
     """Generate a starting test dataset from the input data.
@@ -59,71 +59,57 @@ def generateTrainingData(Xs, Ys, i):
     Y_train = kfxv.mergedata(Ys)
     return X_train, Y_train
 
-def tuneFFNNClassifier(X, Y):
-    """Tune the k parameter for KNN Classifier using 10-fold cross-validation.
-
-    :param X: Feature vector
-    :param Y: Target vector
-    :return: Optimal k value
-    """
-    # TODO hook in the classifier when it is done
-    # generate the test sets and the folds
-    Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
-    # cl = nn.ffNNClassification()
-    perf = [0] * len(ks)
-
-    # perform 10-fold cross-validation
-    for i in range(10):
-        X_train, Y_train = generateTrainingData(Xs, Ys, i)
-        # cl.fit(X_train, Y_train)
-        for j in range(len(ks)):
-            predictions = cl.predict(X_test)
-            perf[j] += ev.zero_one_loss(Y_test, predictions)
-
-    # find the k value with the lowest error
-    
-    return 
-
 
 def tuneFFNNRegression(X, Y, n_hidden_layers):
     """Tune the k and sigma parameters for KNN Regression using 10-fold cross-validation.
 
     :param X: Feature vector
     :param Y: Target vector
-    :return: Tuple ()
+    :param n_hidden_layers: the number of hidden layers
+    :return learning_rate:
+    :return batch_size: batch size as a factor of number of samples
+    :return n_hidden: the number of hidden nodes per layer as a factor of number of inputs
+    :return momentum: 
     """
     Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
     n_inputs = len(X[0])
-    a_n = len(learning_rate)
-    b_n = len(batches)
-    c_n = len(n_hidden)
-    d_n = len(momentum)
-    total = a_n * b_n * c_n * d_n
-    perfarr = np.array((a_n, b_n, c_n, d_n))
+    m = np.max(X)
+    lrlist = np.power(2, (np.random.rand(testsize) * (learning_rate[1] - learning_rate[0]) - learning_rate[1] - np.log2(m)))
+    batchlist = (np.random.rand(testsize) * np.floor(len(X) * 0.81) + 1).astype(int)
+    nhnlist = ((np.random.rand(testsize) * (n_hidden[1] - n_hidden[0]) + n_hidden[0]) * len(X[0])).astype(int)
+    momlist = np.random.rand(testsize)
+    perfarr = np.zeros(testsize)
     # perform 10-fold cross-validation
     for n in range(10):
+        print("Tuning set", n)
         X_train, Y_train = generateTrainingData(Xs, Ys, n)
-        for i in range(total):
-            a_i = i % a_n
-            b_i = np.floor(i / a_n) % b_n
-            c_i = np.floor(i / (a_n * b_n)) % c_n
-            d_i = np.floor(i / (a_n * b_n * c_n)) % d_n
-            re = nn.ffNNRegression(X_train, Y_train, n_inputs, n_hidden[c_i], n_hidden_layers)
-            # TODO figure out how to detect convergence. IDEA run until test set diverges and find n_epochs with best performance
-            testing = True
+        n_X = len(X_train)
+        for i in range(testsize):
+            learning       = lrlist[i]
+            batch_size     = min(n_X, max(1, batchlist[i]))
+            n_hidden_nodes = nhnlist[i]
+            mom            = momlist[i]
+            re = nn.ffNNRegression(X_train, Y_train, n_inputs, n_hidden_nodes, n_hidden_layers)
+            # We train the model one epoch at a time until it stops improving
+            # bestresults = np.square(np.max(Y_test) - np.min(Y_test))
+            bestresults = 0
+            ephochs_since_last_improvement = 0
             epochs = 0
-            while testing:
-                epochs += 100
-                re.train(100, batches[b_i], learning_rate[a_i], momentum[d_i])
+            while ephochs_since_last_improvement < 10: # if it doesn't improve after 20 iterations it ends
+                epochs += 1
+                ephochs_since_last_improvement += 1
+                re.train(1, batch_size, learning, mom)
                 predictions = re.predict(X_test)
-                
-            perfarr[a_i][b_i][c_i] += r2_score(Y_test, predictions)
-    f_i = np.argmax(perfarr)
-    lr_i = np.floor(f_i / (b_n * c_n * d_n))
-    bat_i = np.floor(f_i / (a_n * c_n * d_n))
-    nh_i = np.floor(f_i / (a_n * b_n * d_n))
-    mom_i = np.floor(f_i / (a_n * b_n * c_n))
-    return learning_rate[lr_i], batches[bat_i], n_hidden[nh_i], momentum[mom_i]
+                results = 1 / ev.mse(Y_test, predictions)
+                if results > bestresults:
+                    ephochs_since_last_improvement = 0
+                    bestresults = results
+            perfarr[i] += bestresults
+        print(perfarr)
+    # get the idices and put them into a tuple. I got this off of chatgpt because I'm not spending 2 hours looking for the specific algorithm that does this
+    index = np.argmax(perfarr)
+
+    return lrlist[index], batchlist[index], nhnlist[index], momlist[index]
 
 
 def tuneEverything(datadirectory: str):

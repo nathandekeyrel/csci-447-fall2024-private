@@ -2,6 +2,7 @@ import copy
 import numpy as np
 import random
 import ffNN as nn
+import evaluating as ev
 
 def kfold(X, Y, k):
     """Stratify and break the data into k folds
@@ -18,7 +19,11 @@ def kfold(X, Y, k):
     random.shuffle(Vs)
     # sort the vectors in Vs by their class. Since the sort is stable, the randomization
     # introduced by the shuffle in the previous step will be preserved
-    Vs.sort(key=lambda x: x[-1])
+    if isinstance(Y, np.ndarray):
+        sortkey = lambda x: np.argmax(x[-1])
+    else:
+        sortkey = lambda x: x[-1]
+    Vs.sort(key=sortkey)
     # initialize our list of vector lists Xs and Ys, which will represent the folds
     Xs = [[] for _ in range(k)]
     Ys = [[] for _ in range(k)]
@@ -36,15 +41,18 @@ def kfold(X, Y, k):
     return Xs, Ys
 
 
-def _crossvalidationC(i, X, Y, epochs, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum):
+def _crossvalidationC(i, X, Y, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum):
     """Perform cross-validation on a single fold for a given classifier
 
     :param i: Index of the fold to use as the holdout set
     :param X: List of feature vector folds
     :param Y: List of target value folds
-    :param nClasses: Number of classes in the dataset
-    :param k: Number of neighbors for kNN
-    :param cl: Classifier object
+    :param epochs: the number of epochs to train the model for
+    :param hidden_layers: the number of hidden layers to use
+    :param nodes_per_hidden_layer: the number of nodes for each hidden layer
+    :param batch_size: the size of the batches for training
+    :param learning_rate: the coefficient for calculating gradient strength
+    :param momentum: the momentum of the learning rate
     :return: Tuple of (actual values, predictions) for the holdout set
     """
     # copy the X and Y arrays to keep the sample data intact
@@ -59,39 +67,56 @@ def _crossvalidationC(i, X, Y, epochs, hidden_layers, nodes_per_hidden_layer, ba
     #initialize the classifier
     cl = nn.ffNNClassification(len(Xt[0]), nodes_per_hidden_layer, hidden_layers, max(Yt) + 1)
     # train the model with the training data
-    cl.train(Xt, Yt, epochs, batch_size, learning_rate, momentum)
-    # get the predictions
-    predictions = np.array(cl.predict(Xh))
+    bestperf = 1
+    bestpredictions = None
+    epochs_since_last_improvement = 0
+    while epochs_since_last_improvement < 10:
+        epochs_since_last_improvement += 1
+        cl.train(Xt, Yt, 1, batch_size, learning_rate, momentum)
+        # get the predictions
+        predictions = cl.predict(Xh)
+        perf = ev.zero_one_loss(Yh, predictions)
+        if perf < bestperf:
+            bestperf = perf
+            bestpredictions = predictions
+            epochs_since_last_improvement = 0
     # return the actual values and the predictions
-    return copy.copy(Yh), predictions
+    return copy.copy(Yh), bestpredictions
 
 
-def tenfoldcrossvalidationC(X, Y, epochs, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum):
+def tenfoldcrossvalidationC(X, Y, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum):
     """Perform 10-fold cross-validation for a classifier
 
     :param X: Feature vectors
     :param Y: Target values
+    :param epochs: the number of epochs to train the model for
+    :param hidden_layers: the number of hidden layers to use
+    :param nodes_per_hidden_layer: the number of nodes for each hidden layer
+    :param batch_size: the size of the batches for training
+    :param learning_rate: the coefficient for calculating gradient strength
+    :param momentum: the momentum of the learning rate
     :return: List of tuples (actual values, predictions) for each fold
     """
     nClasses = np.max(Y) + 1
     X, Y = kfold(X, Y, 10)
-    results = [_crossvalidationC(i, X, Y, epochs, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum) for i in range(10)]
+    results = [_crossvalidationC(i, X, Y, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum) for i in range(10)]
     return results
 
 
-def _crossvalidationR(i, X, Y, epochs, nodes_per_hidden_layer, hidden_layers, batch_size, learning_rate, momentum):
+def _crossvalidationR(i, X, Y, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum):
     """Perform cross-validation on a single fold for a given regression model
 
     :param i: Index of the fold to use as the holdout set
     :param X: List of feature vector folds
     :param Y: List of target value folds
     :param epochs: the number of epochs to train the model for
-    :param nodes_per_hidden_layer: the number of nodes for each hidden layer
     :param hidden_layers: the number of hidden layers to use
+    :param nodes_per_hidden_layer: the number of nodes for each hidden layer
     :param batch_size: the size of the batches for training
     :param learning_rate: the coefficient for calculating gradient strength
     :param momentum: the momentum of the learning rate
-    :return: Tuple of (actual values, predictions) for the holdout set
+    :return actual values:
+    :return predictions:
     """
     # copy the X and Y arrays to keep the sample data intact
     Xc = copy.copy(X)
@@ -105,26 +130,39 @@ def _crossvalidationR(i, X, Y, epochs, nodes_per_hidden_layer, hidden_layers, ba
     # initialize the regressor
     re = nn.ffNNRegression(Xt, Yt, len(Xt[0]), nodes_per_hidden_layer, hidden_layers)
     # train the model with the training data
-    re.train(epochs, batch_size, learning_rate, momentum)
-    # get the predictions
-    predictions = re.predict(Xh)
+    bestperf = 0
+    bestpredictions = None
+    epochs_since_last_improvement = 0
+    while epochs_since_last_improvement < 10:
+        epochs_since_last_improvement += 1
+        re.train(1, batch_size, learning_rate, momentum)
+        # get the predictions
+        predictions = re.predict(Xh)
+        perf = 1 / ev.mse(Yh, predictions)
+        if perf > bestperf:
+            bestperf = perf
+            bestpredictions = predictions
+            epochs_since_last_improvement = 0
     # return a tuple containing the hold out target values and the predictions
-    return copy.copy(Yh), predictions
+    return copy.copy(Yh), bestpredictions
 
 
-def tenfoldcrossvalidationR(X, Y, epochs, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum):
+def tenfoldcrossvalidationR(X, Y, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum):
     """Perform 10-fold cross-validation for a regression model
 
     :param re: Regression model object
     :param X: Feature vectors
     :param Y: Target values
-    :param k: Number of neighbors for kNN
-    :param sig: Sigma value for the regression model
-    :param e: Epsilon value for edited kNN (default 0)
+    :param epochs: the number of epochs to train the model for
+    :param nodes_per_hidden_layer: the number of nodes for each hidden layer
+    :param hidden_layers: the number of hidden layers to use
+    :param batch_size: the size of the batches for training
+    :param learning_rate: the coefficient for calculating gradient strength
+    :param momentum: the momentum of the learning rate
     :return: List of tuples (actual values, predictions) for each fold
     """
     X, Y = kfold(X, Y, 10)
-    results = [_crossvalidationR(i, X, Y, epochs, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum) for i in range(10)]
+    results = [_crossvalidationR(i, X, Y, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum) for i in range(10)]
     return results
 
 
