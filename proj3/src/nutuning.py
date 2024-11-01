@@ -73,7 +73,7 @@ def tuneFFNNRegression(X, Y, n_hidden_layers):
     """
     Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
     n_inputs = len(X[0])
-    m = np.max(X)
+    m = np.max(Y)
     lrlist = np.power(2, (np.random.rand(testsize) * (learning_rate[1] - learning_rate[0]) - learning_rate[1] - np.log2(m)))
     batchlist = (np.random.rand(testsize) * np.floor(len(X) * 0.81) + 1).astype(int)
     nhnlist = ((np.random.rand(testsize) * (n_hidden[1] - n_hidden[0]) + n_hidden[0]) * len(X[0])).astype(int)
@@ -81,7 +81,6 @@ def tuneFFNNRegression(X, Y, n_hidden_layers):
     perfarr = np.zeros(testsize)
     # perform 10-fold cross-validation
     for n in range(10):
-        print("Tuning set", n)
         X_train, Y_train = generateTrainingData(Xs, Ys, n)
         n_X = len(X_train)
         for i in range(testsize):
@@ -105,10 +104,8 @@ def tuneFFNNRegression(X, Y, n_hidden_layers):
                     ephochs_since_last_improvement = 0
                     bestresults = results
             perfarr[i] += bestresults
-        print(perfarr)
     # get the idices and put them into a tuple. I got this off of chatgpt because I'm not spending 2 hours looking for the specific algorithm that does this
     index = np.argmax(perfarr)
-
     return lrlist[index], batchlist[index], nhnlist[index], momlist[index]
 
 
