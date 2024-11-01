@@ -9,11 +9,29 @@ import numpy as np
 from numpy import mean, square
 
 # np.seterr(all='raise')
-test = "classcv"
+test = "printtuning"
 
-X, Y = pr.preprocess_data("data/abalone.data")
+X, Y = pr.preprocess_data("data/machine.data")
 
 Xc, Yc = pr.preprocess_data("data/breast-cancer-wisconsin.data")
+
+if test == "printtuning":
+  file = open("output/tunings.csv", "w")
+  file.write("name, hidden layers, learning rate, batch size, nodes in each hidden layer, momentum\n")
+  file.flush()
+  paths = ["machine.data", "forestfires.csv", "abalone.data"]
+  for path in paths:
+    X, Y = pr.preprocess_data("data/" + path)
+    learning_rate, batch_size, n_hidden, momentum = ntu.tuneFFNNRegression(X, Y, 0)
+    file.write('%s, 0, %f, %d, %d, %f\n'%(path, learning_rate, batch_size, n_hidden, momentum))
+    file.flush()
+    learning_rate, batch_size, n_hidden, momentum = ntu.tuneFFNNRegression(X, Y, 1)
+    file.write('%s, 1, %f, %d, %d, %f\n'%(path, learning_rate, batch_size, n_hidden, momentum))
+    file.flush()
+    learning_rate, batch_size, n_hidden, momentum = ntu.tuneFFNNRegression(X, Y, 2)
+    file.write('%s, 2, %f, %d, %d, %f\n'%(path, learning_rate, batch_size, n_hidden, momentum))
+    file.flush()
+  file.close()
 
 if test == "classcv":
   out = xv.tenfoldcrossvalidationC(Xc, Yc, 3, len(Xc[0]), 20, 1.0, 0.0)
@@ -21,11 +39,11 @@ if test == "classcv":
 
 if test == "fullreg":
   learning_rate, batch_size, n_hidden, momentum = ntu.tuneFFNNRegression(X, Y, 3)
-  out = xv.tenfoldcrossvalidationR(X, Y, n_hidden, 3, batch_size, learning_rate, momentum)
+  out = xv.tenfoldcrossvalidationR(X, Y, 3, n_hidden, batch_size, learning_rate, momentum)
   print(np.mean([ev.mse(yt, yp) for yt, yp in out]))
 
 if test == "regcv":
-  out = xv.tenfoldcrossvalidationR(X, Y, 3, 61, 128, 0.001347, 0.3767)
+  out = xv.tenfoldcrossvalidationR(X, Y, 3, 6, 2718, 0.265686, 0.42882)
   print(np.mean([ev.mse(yt, yp) for yt, yp in out]))
   pass
 
