@@ -1,0 +1,10 @@
+name, hidden layers, learning rate, batch size, nodes in each hidden layer, momentum
+machine.data, 0, 0.011315, 166, 30, 0.373050
+machine.data, 1, 0.012648, 81, 28, 0.459171
+machine.data, 2, 0.005615, 166, 64, 0.221782
+forestfires.csv, 0, 0.617997, 169, 54, 0.479931
+forestfires.csv, 1, 1.228307, 124, 25, 0.062391
+forestfires.csv, 2, 0.953211, 88, 34, 0.150291
+abalone.data, 0, 0.441659, 3296, 13, 0.353981
+abalone.data, 1, 0.236368, 3247, 13, 0.367304
+abalone.data, 2, 0.158300, 2550, 12, 0.294264
