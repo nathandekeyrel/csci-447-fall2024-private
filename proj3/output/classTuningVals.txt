@@ -1,0 +1,79 @@
+Classification Datasets:
+
+Cancer:
+----------------------
+0 hidden layers:
+----------------------
+Learning Rate: 0.9000
+Momentum: 0.9000
+Batch Size: 8
+Hidden Nodes: 5
+Best Score: 0.0130
+----------------------
+1 hidden layer:
+----------------------
+Learning Rate: 0.3000
+Momentum: 0.7000
+Batch Size: 4
+Hidden Nodes: 5
+Best Score: 0.0130
+----------------------
+2 hidden layers:
+----------------------
+Learning Rate: 0.5000
+Momentum: 0.9000
+Batch Size: 16
+Hidden Nodes: 5
+Best Score: 0.0114
+
+Glass:
+----------------------
+0 hidden layers:
+----------------------
+Learning Rate: 0.3000
+Momentum: 0.9500
+Batch Size: 8
+Hidden Nodes: 7
+Best Score: 0.2761
+----------------------
+1 hidden layer:
+----------------------
+Learning Rate: 0.9000
+Momentum: 0.7000
+Batch Size: 16
+Hidden Nodes: 7
+Best Score: 0.3542
+----------------------
+2 hidden layers:
+----------------------
+Learning Rate: 0.7000
+Momentum: 0.8000
+Batch Size: 8
+Hidden Nodes: 7
+Best Score: 0.3484
+
+Soybean:
+----------------------
+0 hidden layers:
+----------------------
+Learning Rate: 0.1000
+Momentum: 0.7000
+Batch Size: 4
+Hidden Nodes: 38
+Best Score: 0.0000
+----------------------
+1 hidden layer:
+----------------------
+Learning Rate: 0.1000
+Momentum: 0.8000
+Batch Size: 4
+Hidden Nodes: 38
+Best Score: 0.0000
+----------------------
+2 hidden layers:
+----------------------
+Learning Rate: 0.5000
+Momentum: 0.7000
+Batch Size: 4
+Hidden Nodes: 38
+Best Score: 0.1050

@@ -4,7 +4,7 @@ from sklearn.preprocessing import OneHotEncoder
 
 class ffNNClassification:
     def __init__(self, n_input, n_hidden, n_hidden_layers, n_output):
-        """Initialize the neural network
+        """Initialize the neural network for classification
 
         :param n_input: number of input nodes
         :param n_hidden: number of nodes in hidden layer
@@ -193,7 +193,13 @@ class ffNNClassification:
 
 class ffNNRegression:
     def __init__(self, X, Y, n_input, n_hidden, n_hidden_layers, n_output=1):
-        #initialize the neural network nodes here
+        """Initialize the neural network
+
+        :param n_input: number of input nodes
+        :param n_hidden: number of nodes in hidden layer
+        :param n_hidden_layers: number of hidden layers
+        :param n_output: number of output nodes
+        """
         self.X = X
         self.Y = Y
         self.layers = n_hidden_layers + 2
@@ -212,8 +218,8 @@ class ffNNRegression:
         self.db_prev = [np.zeros((x, 1)) for x, _ in dims]
         pass
 
-    def feedforward(self, x : np.ndarray):
-        """ feed the feature vector through the network and receive the output
+    def feedforward(self, x: np.ndarray):
+        """feed the feature vector through the network and receive the output
         
         :param x: the feature vector
         :return: the output from the feature vector
@@ -221,32 +227,50 @@ class ffNNRegression:
         # get the dot product of the input and the input to hidden layer weight matrix
         self.outputs = []
         self.outputs.append(x.reshape(len(x), 1))
-        i = -1 #initialize to -1 in case the number of layers is less than 3
+        i = -1  # initialize to -1 in case the number of layers is less than 3
         for i in range(self.layers - 2):
             activation = np.dot(self.weights[i], self.outputs[i]) + self.biases[i]
             self.outputs.append(sigmoid(activation))
-        #special case for the last node. Increment i by one because python doesn't have normal-ass for loops
+        # special case for the last node. Increment i by one because python doesn't have normal-ass for loops
         i += 1
         activation = np.dot(self.weights[i], self.outputs[i]) + self.biases[i]
         self.outputs.append(activation)
         return self.outputs
 
     def backprop(self, y, p, l):
+        """Performs backpropagation through the neural network to compute weight updates
+        based on prediction error. For networks with hidden layers, uses the chain rule to
+        calculate gradients at each layer, working backwards from the output.
+
+        :param y: target values from dataset
+        :param p: predicted value from feedforward pass
+        :param l: step size for gradient update
+        :return: tuple of weight updates and deltas for each layer
+        """
         errors = [None for _ in range(self.layers - 1)]
         delta = [None for _ in range(self.layers - 1)]
-        #since the last node is a special case, I'm just going to do this instead writing a bunch of fucking branching instructions
+        # since the last node is a special case
         errors[-1] = np.array([[y - p]])
         delta[-1] = errors[-1] * l
         for i in range(self.layers - 3, -1, -1):
-            #get the e value for the current layer via e_i = e_i+1 dot W_i+1
-            errors[i] = np.dot(errors[i+1], self.weights[i+1])
-            #get the delta values per layer
-            delta[i] = d_sigmoid(self.outputs[i+1]) * errors[i].T * l
+            # get the e value for the current layer via e_i = e_i+1 dot W_i+1
+            errors[i] = np.dot(errors[i + 1], self.weights[i + 1])
+            # get the delta values per layer
+            delta[i] = d_sigmoid(self.outputs[i + 1]) * errors[i].T * l
         return delta
 
     def train(self, epochs, batchsize, l, a):
+        """Trains the neural network using mini-batch gradient descent.
+        For each epoch, shuffles data randomly and processes it into
+        batches to update weights and biases using backpropagation.
+
+        :param epochs: number of complete passes through training dataset
+        :param batchsize: number of samples processed before updating weights
+        :param l: step size for gradient descent
+        :param a: coefficient for momentum to escape local minima
+        """
         for _ in range(epochs):
-            #find some way to select the X and Y values for the batches
+            # find some way to select the X and Y values for the batches
             indices = np.random.choice(self.X.shape[0], batchsize, replace=False)
             X_t = np.array(self.X[indices])
             Y_t = np.array(self.Y[indices])
@@ -254,9 +278,17 @@ class ffNNRegression:
         pass
 
     def _train(self, X_t, Y_t, l, a):
-        dw = [] # list that holds our changes for our weights
-        db = [] # list that holds our changes for our biases
-        n = len(X_t) # number of training examples
+        """Helper method that performs training on a batch of samples. Updates network
+        weights and biases using accumulated gradients over the batch with momentum.
+
+        :param X_t: input features
+        :param Y_t: target values
+        :param l: step size for gradient descent
+        :param a: coefficient for momentum to escape local minima
+        """
+        dw = []  # list that holds our changes for our weights
+        db = []  # list that holds our changes for our biases
+        n = len(X_t)  # number of training examples
         # initialize dt to zero with the dimensions we are expecting from the deltas reported by backprop
         for mat in self.weights:
             dw.append(np.zeros(mat.shape))
@@ -277,10 +309,28 @@ class ffNNRegression:
         self.db_prev = db
 
     def predict(self, X):
+        """Regression models only have one output node.
+
+        :param X: input features from dataset
+        :return: final node in the network
+        """
         return [self.feedforward(x)[-1][0][0] for x in X]
 
+
 def sigmoid(x):
+    """Sigmoid activation function that maps any real number to [0,1] range.
+
+    :param x: input value or numpy array to transform
+    :return: value between 0 and 1
+    """
     return 1 / (1 + np.exp(-x))
 
+
 def d_sigmoid(x):
+    """Derivative of sigmoid function. Used in backpropagation to
+    compute gradients.Its derivative is f'(x) = f(x) * (1 - f(x)).
+
+    :param x: input value already passed through the sigmoid function
+    :return: the derivative value at that point
+    """
     return x * (1 - x)

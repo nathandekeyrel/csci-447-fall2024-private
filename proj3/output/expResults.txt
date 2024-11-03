@@ -1,0 +1,122 @@
+Loading data...
+Preprocessing datasets...
+===========================================================================
+Cancer:
+===========================================================================
+Running 0 hidden layers...
+0 Hidden Layers Metrics:
+  Accuracy: 0.9839
+  Precision: [0.99542334 0.96341463]
+  Recall: [0.97972973 0.9916318 ]
+
+Running 1 hidden layer...
+1 Hidden Layer Metrics:
+  Accuracy: 0.9824
+  Precision: [0.99769585 0.95582329]
+  Recall: [0.97522523 0.9958159 ]
+
+Running 2 hidden layers...
+2 Hidden Layers Metrics:
+  Accuracy: 0.9824
+  Precision: [0.99769585 0.95582329]
+  Recall: [0.97522523 0.9958159 ]
+===========================================================================
+Glass:
+===========================================================================
+Running 0 hidden layers...
+0 Hidden Layers Metrics:
+  Accuracy: 0.7006
+  Precision: [0.68421053 0.65217391 0.66666667 0.8        0.6        0.89285714]
+  Recall: [0.74285714 0.78947368 0.11764706 0.61538462 0.33333333 0.86206897]
+
+Running 1 hidden layer...
+1 Hidden Layer Metrics:
+  Accuracy: 0.5829
+  Precision: [0.57954545 0.56666667 0.         0.         0.         0.63888889]
+  Recall: [0.72857143 0.67105263 0.         0.         0.         0.79310345]
+
+Running 2 hidden layers...
+2 Hidden Layers Metrics:
+  Accuracy: 0.5115
+  Precision: [0.5        0.50458716 0.         0.         0.         0.66666667]
+  Recall: [0.64285714 0.72368421 0.         0.         0.         0.34482759]
+===========================================================================
+Soybean:
+===========================================================================
+Running 0 hidden layers...
+0 Hidden Layers Metrics:
+  Accuracy: 1.0000
+  Precision: [1. 1. 1. 1.]
+  Recall: [1. 1. 1. 1.]
+
+Running 1 hidden layer...
+1 Hidden Layer Metrics:
+  Accuracy: 0.8950
+  Precision: [0.9        1.         1.         0.80952381]
+  Recall: [0.9 1.  0.6 1. ]
+
+Running 2 hidden layers...
+2 Hidden Layers Metrics:
+  Accuracy: 0.8100
+  Precision: [0.75       0.88888889 0.7        0.875     ]
+  Recall: [0.9        0.8        0.7        0.82352941]
+===========================================================================
+Abalone:
+===========================================================================
+Running 0 hidden layers...
+0 Hidden Layers Metrics:
+  MSE: 5.2046
+  RMSE: 2.2814
+  MAE: 1.6332
+
+Running 1 hidden layer...
+1 Hidden Layer Metrics:
+  MSE: 5.1760
+  RMSE: 2.2751
+  MAE: 1.6407
+
+Running 2 hidden layers...
+2 Hidden Layers Metrics:
+  MSE: 6.0889
+  RMSE: 2.4676
+  MAE: 1.7835
+===========================================================================
+Hardware:
+===========================================================================
+Running 0 hidden layers...
+0 Hidden Layers Metrics:
+  MSE: 5621.5500
+  RMSE: 74.9770
+  MAE: 41.6044
+
+Running 1 hidden layer...
+1 Hidden Layer Metrics:
+  MSE: 2518.7115
+  RMSE: 50.1868
+  MAE: 26.6828
+
+Running 2 hidden layers...
+2 Hidden Layers Metrics:
+  MSE: 4805.4227
+  RMSE: 69.3212
+  MAE: 34.2796
+===========================================================================
+Fires:
+===========================================================================
+Running 0 hidden layers...
+0 Hidden Layers Metrics:
+  MSE: 1.9388
+  RMSE: 1.3924
+  MAE: 1.1325
+
+Running 1 hidden layer...
+1 Hidden Layer Metrics:
+  MSE: 1.9108
+  RMSE: 1.3823
+  MAE: 1.1350
+
+Running 2 hidden layers...
+2 Hidden Layers Metrics:
+  MSE: 1.9130
+  RMSE: 1.3831
+  MAE: 1.1438

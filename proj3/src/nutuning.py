@@ -3,18 +3,16 @@ import numpy as np
 import ffNN as nn
 import copy
 import evaluating as ev
-import preprocess as pr
-import sys
-from sklearn.metrics import r2_score
 
-#ranges for the hyperparameters to be tuned
+# ranges for the hyperparameters to be tuned
 learning_rate = (2, 4)
 batches = (0, 1.0)
 n_hidden = (0.5, 2)
 momentum = (0, 1.0)
 
-#the number of tests to run
+# the number of tests to run
 testsize = 100
+
 
 def generateStartingTestData(X, Y):
     """Generate a starting test dataset from the input data.
@@ -84,17 +82,17 @@ def tuneFFNNRegression(X, Y, n_hidden_layers):
         X_train, Y_train = generateTrainingData(Xs, Ys, n)
         n_X = len(X_train)
         for i in range(testsize):
-            learning       = lrlist[i]
-            batch_size     = min(n_X, max(1, batchlist[i]))
+            learning = lrlist[i]
+            batch_size = min(n_X, max(1, batchlist[i]))
             n_hidden_nodes = nhnlist[i]
-            mom            = momlist[i]
+            mom = momlist[i]
             re = nn.ffNNRegression(X_train, Y_train, n_inputs, n_hidden_nodes, n_hidden_layers)
             # We train the model one epoch at a time until it stops improving
             # bestresults = np.square(np.max(Y_test) - np.min(Y_test))
             bestresults = 0
             ephochs_since_last_improvement = 0
             epochs = 0
-            while ephochs_since_last_improvement < 5: # if it doesn't improve after 10 iterations it ends
+            while ephochs_since_last_improvement < 5:  # if it doesn't improve after 10 iterations it ends
                 epochs += 1
                 ephochs_since_last_improvement += 1
                 re.train(1, batch_size, learning, mom)
@@ -104,45 +102,6 @@ def tuneFFNNRegression(X, Y, n_hidden_layers):
                     ephochs_since_last_improvement = 0
                     bestresults = results
             perfarr[i] += bestresults
-    # get the idices and put them into a tuple. I got this off of chatgpt because I'm not spending 2 hours looking for the specific algorithm that does this
+    # get the indices and put them into a tuple
     index = np.argmax(perfarr)
     return lrlist[index], batchlist[index], nhnlist[index], momlist[index]
-
-
-def tuneEverything(datadirectory: str):
-    """Tune parameters for all models (KNN, EKNN, KMeans) on multiple datasets.
-
-    This function processes multiple datasets, tunes the parameters for classification
-    and regression tasks, and prints the results.
-
-    :param datadirectory: Directory containing the dataset files
-    """
-    if not datadirectory.endswith("/"):
-        datadirectory += "/"
-    filenames = ["soybean-small.data", "glass.data", "breast-cancer-wisconsin.data", "machine.data", "forestfires.csv",
-                 "abalone.data"]
-    paths = [datadirectory + filenames[i] for i in range(6)]
-
-    # tune classification datasets
-    print("filename,k value for knn,k value for eknn,k cluster for kmeans,k value for kmeans\n")
-    for i in range(3):
-        path = paths[i]
-        try:
-            X, Y = pr.preprocess_data(path)
-            print("Loading file at " + path + " successful")
-        except:
-            print("Failed to load file at " + path)
-        # tune the classifier
-        print("%s,%d,%d,%d,%d\n" % (path))
-
-    # tune regression datasets
-    print("filename,k value for knn,sig value for knn,k value for eknn,sig value for eknn,e value for eknn,k cluster for kmeans,k value for kmeans,sig value for kmeans\n")
-    for i in range(3, 6):
-        path = paths[i]
-        try:
-            X, Y = pr.preprocess_data(path)
-            print("Loading file at " + path + " successful")
-        except:
-            print("Failed to load file at " + path)
-        # tune the regressor
-        print("%s,%d,%f,%d,%f,%d,%d,%d,%f\n" % (path))

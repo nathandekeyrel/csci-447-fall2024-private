@@ -3,17 +3,7 @@ import numpy as np
 import ffNN as nn
 import copy
 import evaluating as ev
-import preprocess as pr
-import sys
-from sklearn.metrics import r2_score
-
-## TODO needs to be updated for current project
-
-# global variables holding optimal k, sigma, and epsilon values
-learning_rate = [1, 3, 5, 7, 13, 15]
-batches = [0.25, 0.5, 1, 2]
-n_hidden = []
-momentum = []
+from preprocess import preprocess_data
 
 
 def generateStartingTestData(X, Y):
@@ -43,123 +33,172 @@ def generateStartingTestData(X, Y):
     return Xs, Ys, X_test, Y_test
 
 
-def generateTrainingData(Xs, Ys, i):
-    """Generate training data by excluding the i-th fold.
+def get_train_data(Xs, Ys, i):
+    """Helper function to merge training data excluding validation fold.
 
     :param Xs: List of feature vector folds
     :param Ys: List of target vector folds
     :param i: Index of the fold to exclude (used as validation set)
-    :return: Tuple (X_train, Y_train) containing merged training data
+    :return: Tuple (X_train, Y_train) containing merged training data as numpy arrays
     """
-    Xs = copy.copy(Xs)
-    Ys = copy.copy(Ys)
-    Xs.pop(i)
-    Ys.pop(i)
-    X_train = kfxv.mergedata(Xs)
-    Y_train = kfxv.mergedata(Ys)
-    return X_train, Y_train
+    X_train = []
+    Y_train = []
+    for j in range(len(Xs)):
+        if j != i:  # skip validation fold
+            X_train.extend(Xs[j])
+            Y_train.extend(Ys[j])
+    return np.array(X_train), np.array(Y_train)
 
-def tuneFFNNClassifier(X, Y):
-    """Tune the k parameter for KNN Classifier using 10-fold cross-validation.
 
-    :param X: Feature vector
-    :param Y: Target vector
-    :return: Optimal k value
+def get_hidden_nodes(n_input, n_output):
+    """Calculate hidden nodes as a factor of input/output sizes
+
+    :param n_input: Number of input nodes in neural network
+    :param n_output: Number of output nodes in neural network
+    :return: List containing single value - number of hidden nodes to use
     """
-    # TODO hook in the classifier when it is done
-    # generate the test sets and the folds
-    Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
-    # cl = nn.ffNNClassification()
-    perf = [0] * len(ks)
-
-    # perform 10-fold cross-validation
-    for i in range(10):
-        X_train, Y_train = generateTrainingData(Xs, Ys, i)
-        # cl.fit(X_train, Y_train)
-        for j in range(len(ks)):
-            predictions = cl.predict(X_test)
-            perf[j] += ev.zero_one_loss(Y_test, predictions)
-
-    # find the k value with the lowest error
-    
-    return 
+    return [(n_input + n_output) // 2]
 
 
-def tuneFFNNRegression(X, Y, n_hidden_layers):
-    """Tune the k and sigma parameters for KNN Regression using 10-fold cross-validation.
+def tuneNNClassifier(X, Y, n_hidden_layers):
+    """Tune neural network using fixed parameter ranges for classification tasks.
+    Preforms grid search over learning rates, momentum, and batch sizes. Implements
+    early stopping with patience to prevent overfitting.
 
-    :param X: Feature vector
-    :param Y: Target vector
-    :return: Tuple ()
+    :param X: features from dataset
+    :param Y: target vector of class labels
+    :param n_hidden_layers: number of hidden layers in the network architecture
+    :return: dictionary containing the best parameters found:
     """
     Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
-    n_inputs = len(X[0])
-    a_n = len(learning_rate)
-    b_n = len(batches)
-    c_n = len(n_hidden)
-    d_n = len(momentum)
-    total = a_n * b_n * c_n * d_n
-    perfarr = np.array((a_n, b_n, c_n, d_n))
-    # perform 10-fold cross-validation
-    for n in range(10):
-        X_train, Y_train = generateTrainingData(Xs, Ys, n)
-        for i in range(total):
-            a_i = i % a_n
-            b_i = np.floor(i / a_n) % b_n
-            c_i = np.floor(i / (a_n * b_n)) % c_n
-            d_i = np.floor(i / (a_n * b_n * c_n)) % d_n
-            re = nn.ffNNRegression(X_train, Y_train, n_inputs, n_hidden[c_i], n_hidden_layers)
-            # TODO figure out how to detect convergence. IDEA run until test set diverges and find n_epochs with best performance
-            testing = True
-            epochs = 0
-            while testing:
-                epochs += 100
-                re.train(100, batches[b_i], learning_rate[a_i], momentum[d_i])
-                predictions = re.predict(X_test)
-                
-            perfarr[a_i][b_i][c_i] += r2_score(Y_test, predictions)
-    f_i = np.argmax(perfarr)
-    lr_i = np.floor(f_i / (b_n * c_n * d_n))
-    bat_i = np.floor(f_i / (a_n * c_n * d_n))
-    nh_i = np.floor(f_i / (a_n * b_n * d_n))
-    mom_i = np.floor(f_i / (a_n * b_n * c_n))
-    return learning_rate[lr_i], batches[bat_i], n_hidden[nh_i], momentum[mom_i]
+    n_input = X.shape[1]
+    n_output = len(np.unique(Y))
+
+    # ranges for grid search
+    learning_rates = [0.1, 0.3, 0.5, 0.7, 0.9]
+    momentum_values = [0.7, 0.8, 0.9, 0.95]
+    batch_sizes = [4, 8, 16, 32, 64, 128]
+    hidden_nodes = get_hidden_nodes(n_input, n_output)[0]
+
+    best_params = {
+        'hidden_nodes': hidden_nodes,
+        'learning_rate': 0,
+        'momentum': 0,
+        'batch_size': 0,
+        'n_hidden_layers': n_hidden_layers,
+        'best_score': float('inf')
+    }
+
+    for lr in learning_rates:
+        for momentum in momentum_values:
+            for batch_size in batch_sizes:
+                total_loss = 0
+
+                for i in range(10):  # ten-fold cv
+                    X_val = np.array(Xs[i])  # current fold is validation set
+                    Y_val = np.array(Ys[i])
+                    X_train, Y_train = get_train_data(Xs, Ys, i)
+
+                    model = nn.ffNNClassification(
+                        n_input=n_input,
+                        n_hidden=hidden_nodes,
+                        n_hidden_layers=n_hidden_layers,
+                        n_output=n_output
+                    )
+
+                    # early stopping stuff
+                    best_fold_loss = float('inf')
+                    epochs_since_improvement = 0
+                    epoch = 0
+                    min_epochs = 20  # force training for x epochs
+                    patience = 10  # stop after x epochs without improvement
+
+                    while (epochs_since_improvement < patience) or (epoch < min_epochs):
+                        epoch += 1
+                        epochs_since_improvement += 1
+
+                        model.train(
+                            X=X_train,
+                            y=Y_train,
+                            epochs=1,
+                            batchsize=batch_size,
+                            learning_rate=lr,
+                            momentum=momentum
+                        )
+
+                        if epoch % 5 == 0 or epoch < min_epochs:  # evaluate every 5 epochs
+                            y_pred = model.predict(X_val)
+                            fold_loss = ev.zero_one_loss(Y_val, y_pred)
+
+                            if fold_loss < best_fold_loss:
+                                best_fold_loss = fold_loss
+                                epochs_since_improvement = 0
+
+                    total_loss += best_fold_loss
+
+                avg_loss = total_loss / 10
+
+                print(f"LR: {lr:.2f}, Momentum: {momentum:.2f}, Batch: {batch_size}, Loss: {avg_loss:.4f}")
+
+                # update with current best scores
+                if avg_loss < best_params['best_score']:
+                    best_params.update({
+                        'hidden_nodes': hidden_nodes,
+                        'learning_rate': lr,
+                        'momentum': momentum,
+                        'batch_size': batch_size,
+                        'best_score': avg_loss
+                    })
+                    print(f"New best score: {avg_loss:.4f}")
+
+    return best_params
 
 
-def tuneEverything(datadirectory: str):
-    """Tune parameters for all models (KNN, EKNN, KMeans) on multiple datasets.
+if __name__ == "__main__":
 
-    This function processes multiple datasets, tunes the parameters for classification
-    and regression tasks, and prints the results.
+    ###################################
+    # Tune Classification
+    ###################################
 
-    :param datadirectory: Directory containing the dataset files
-    """
-    if not datadirectory.endswith("/"):
-        datadirectory += "/"
-    filenames = ["soybean-small.data", "glass.data", "breast-cancer-wisconsin.data", "machine.data", "forestfires.csv",
-                 "abalone.data"]
-    paths = [datadirectory + filenames[i] for i in range(6)]
+    # load datasets
+    cancer_filepath = "../data/breast-cancer-wisconsin.data"
+    glass_filepath = "../data/glass.data"
+    soybean_filepath = "../data/soybean-small.data"
 
-    # tune classification datasets
-    print("filename,k value for knn,k value for eknn,k cluster for kmeans,k value for kmeans\n")
-    for i in range(3):
-        path = paths[i]
-        try:
-            X, Y = pr.preprocess_data(path)
-            print("Loading file at " + path + " successful")
-        except:
-            print("Failed to load file at " + path)
-        # tune the classifier
-        print("%s,%d,%d,%d,%d\n" % (path))
+    # preprocess data
+    X_cancer, y_cancer = preprocess_data(cancer_filepath)
+    X_glass, y_glass = preprocess_data(glass_filepath)
+    X_soybean, y_soybean = preprocess_data(soybean_filepath)
 
-    # tune regression datasets
-    print("filename,k value for knn,sig value for knn,k value for eknn,sig value for eknn,e value for eknn,k cluster for kmeans,k value for kmeans,sig value for kmeans\n")
-    for i in range(3, 6):
-        path = paths[i]
-        try:
-            X, Y = pr.preprocess_data(path)
-            print("Loading file at " + path + " successful")
-        except:
-            print("Failed to load file at " + path)
-        # tune the regressor
-        print("%s,%d,%f,%d,%f,%d,%d,%d,%f\n" % (path))
+    # print results for Cancer dataset
+    print("\nCancer Results:")
+    for n_hidden in [0, 1, 2]:
+        print(f"\n{n_hidden} hidden layers:")
+        cancer_results = tuneNNClassifier(X_cancer, y_cancer, n_hidden)
+        print(f"Learning Rate: {cancer_results['learning_rate']:.4f}")
+        print(f"Momentum: {cancer_results['momentum']:.4f}")
+        print(f"Batch Size: {cancer_results['batch_size']}")
+        print(f"Hidden Nodes: {cancer_results['hidden_nodes']}")
+        print(f"Best Score: {cancer_results['best_score']:.4f}")
+
+    # print results for Glass dataset
+    print("\nGlass Results:")
+    for n_hidden in [0, 1, 2]:
+        print(f"\n{n_hidden} hidden layers:")
+        glass_results = tuneNNClassifier(X_glass, y_glass, n_hidden)
+        print(f"Learning Rate: {glass_results['learning_rate']:.4f}")
+        print(f"Momentum: {glass_results['momentum']:.4f}")
+        print(f"Batch Size: {glass_results['batch_size']}")
+        print(f"Hidden Nodes: {glass_results['hidden_nodes']}")
+        print(f"Best Score: {glass_results['best_score']:.4f}")
+
+    # print results for Soybean dataset
+    print("\nSoybean Results:")
+    for n_hidden in [0, 1, 2]:
+        print(f"\n{n_hidden} hidden layers:")
+        soybean_results = tuneNNClassifier(X_soybean, y_soybean, n_hidden)
+        print(f"Learning Rate: {soybean_results['learning_rate']:.4f}")
+        print(f"Momentum: {soybean_results['momentum']:.4f}")
+        print(f"Batch Size: {soybean_results['batch_size']}")
+        print(f"Hidden Nodes: {soybean_results['hidden_nodes']}")
+        print(f"Best Score: {soybean_results['best_score']:.4f}")

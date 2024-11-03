@@ -4,6 +4,7 @@ import random
 import ffNN as nn
 import evaluating as ev
 
+
 def kfold(X, Y, k):
     """Stratify and break the data into k folds
 
@@ -47,7 +48,6 @@ def _crossvalidationC(i, X, Y, hidden_layers, nodes_per_hidden_layer, batch_size
     :param i: Index of the fold to use as the holdout set
     :param X: List of feature vector folds
     :param Y: List of target value folds
-    :param epochs: the number of epochs to train the model for
     :param hidden_layers: the number of hidden layers to use
     :param nodes_per_hidden_layer: the number of nodes for each hidden layer
     :param batch_size: the size of the batches for training
@@ -64,7 +64,7 @@ def _crossvalidationC(i, X, Y, hidden_layers, nodes_per_hidden_layer, batch_size
     # merge the remaining data for the training set
     Xt = np.array(mergedata(Xc))
     Yt = np.array(mergedata(Yc))
-    #initialize the classifier
+    # initialize the classifier
     cl = nn.ffNNClassification(len(Xt[0]), nodes_per_hidden_layer, hidden_layers, max(Yt) + 1)
     # train the model with the training data
     bestperf = 1
@@ -89,7 +89,6 @@ def tenfoldcrossvalidationC(X, Y, hidden_layers, nodes_per_hidden_layer, batch_s
 
     :param X: Feature vectors
     :param Y: Target values
-    :param epochs: the number of epochs to train the model for
     :param hidden_layers: the number of hidden layers to use
     :param nodes_per_hidden_layer: the number of nodes for each hidden layer
     :param batch_size: the size of the batches for training
@@ -99,7 +98,8 @@ def tenfoldcrossvalidationC(X, Y, hidden_layers, nodes_per_hidden_layer, batch_s
     """
     nClasses = np.max(Y) + 1
     X, Y = kfold(X, Y, 10)
-    results = [_crossvalidationC(i, X, Y, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum) for i in range(10)]
+    results = [_crossvalidationC(i, X, Y, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum)
+               for i in range(10)]
     return results
 
 
@@ -150,10 +150,8 @@ def _crossvalidationR(i, X, Y, hidden_layers, nodes_per_hidden_layer, batch_size
 def tenfoldcrossvalidationR(X, Y, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum):
     """Perform 10-fold cross-validation for a regression model
 
-    :param re: Regression model object
     :param X: Feature vectors
     :param Y: Target values
-    :param epochs: the number of epochs to train the model for
     :param nodes_per_hidden_layer: the number of nodes for each hidden layer
     :param hidden_layers: the number of hidden layers to use
     :param batch_size: the size of the batches for training
@@ -162,7 +160,8 @@ def tenfoldcrossvalidationR(X, Y, hidden_layers, nodes_per_hidden_layer, batch_s
     :return: List of tuples (actual values, predictions) for each fold
     """
     X, Y = kfold(X, Y, 10)
-    results = [_crossvalidationR(i, X, Y, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum) for i in range(10)]
+    results = [_crossvalidationR(i, X, Y, hidden_layers, nodes_per_hidden_layer, batch_size, learning_rate, momentum)
+               for i in range(10)]
     return results
 
 
