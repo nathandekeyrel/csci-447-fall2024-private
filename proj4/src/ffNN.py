@@ -343,10 +343,10 @@ class ffNN:
     def feedforward(self, x):
         self.outputs = [None for _ in range(self.layers)]
         self.outputs[0] = x.reshape(-1, 1)
-        activation = self.weights[0].dot(self.outputs[0])
+        activation = self.weights[0].dot(self.outputs[0]) + self.biases[0]
         for i in range(1, self.layers - 1):
             self.outputs[i] = sigmoid(activation)
-            activation = np.dot(self.weights[i], self.outputs[i])
+            activation = np.dot(self.weights[i], self.outputs[i]) + self.biases[i]
         self.outputs[-1] = self.softmax(activation) if self.is_classifier else activation
         return self.outputs[-1]
     

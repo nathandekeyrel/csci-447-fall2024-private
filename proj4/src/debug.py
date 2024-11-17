@@ -7,6 +7,7 @@ import tuning as tu
 import nutuning as ntu
 import numpy as np
 import backprop as bp
+from copy import deepcopy as cp
 from numpy import mean, square
 
 # np.seterr(all='raise')
@@ -17,13 +18,7 @@ X, Y = pr.preprocess_data("data/machine.data")
 Xc, Yc = pr.preprocess_data("data/breast-cancer-wisconsin.data")
 
 if test == "ffnn":
-  X, Y, X_test, Y_test = ut.generateTestData(Xc, Yc)
-  nn = bp.ffNNbackprop(X, Y, 10, 0, True)
-  nn.train(150, 1, 0.5, X_test, Y_test)
-  pred = nn.net.predict(X_test)
-  print(pred)
-  print(ev.zero_one_loss(pred, Y_test))
-  exit()
+  pass
 
 if test == "printtuning":
   file = open("output/tunings.csv", "w")
