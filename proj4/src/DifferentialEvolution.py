@@ -1,5 +1,6 @@
 import ffNN
 import numpy as np
+from copy import deepcopy as cp
 
 class DifferentialEvolution:
     def __init__(self, X_train, Y_train, n_nodes_per_layer, n_hidden_layers, population, scaling, binomial_crossover, is_classifier):
@@ -10,6 +11,8 @@ class DifferentialEvolution:
         self.binomial_crossover = binomial_crossover
         self.is_classifier = is_classifier
         self.perf = None
+        self.X_train = X_train
+        self.Y_train = Y_train
         self.initialize_model(X_train, Y_train)
     
     def initialize_model(self, X_train, Y_train):
@@ -27,7 +30,26 @@ class DifferentialEvolution:
         offspring = [((x[i] * selector[i]) + (donor[i] * antiselector[i])) for i in range(len(x))]
         return offspring
     
-    def train(self, X_train, Y_train):
+    def train(self, X_test, Y_test):
+        bestperf = 0
+        bestpop = cp(self.nets)
+        epochs = 0
+        while epochs < 25:
+            epochs += 1
+            self._train()
+            pred = self.predict(X_test)
+            if self.is_classifier:
+                perf = 1 - self._performance(pred, Y_test)
+            else:
+                perf = 1 / self._performance(pred, Y_test)
+            if perf > bestperf:
+                bestperf = perf
+                bestpop = cp(self.nets)
+                epochs = 0
+        self.nets = cp(bestpop)
+        pass
+    
+    def _train(self):
         n = len(self.nets)
         next_perf = np.zeros(n)
         next_nets = [None] * n
@@ -36,8 +58,8 @@ class DifferentialEvolution:
             self.perf = np.zeros(n)
             # generate the performance values for the neural nets in our population
             for i in range(n):
-                Y_pred = self.nets[i].predict(X_train)
-                self.perf[i] = self._performance(Y_pred, Y_train)
+                Y_pred = self.nets[i].predict(self.X_train)
+                self.perf[i] = self._performance(Y_pred, self.Y_train)
         for i in range(n):
             # get the indices of the sorted performance values
             sorted_indices = np.argsort(self.perf)
@@ -60,12 +82,12 @@ class DifferentialEvolution:
             offspring_weights = self._generate_offspring(self.nets[i].weights, donor_weights)
             offspring_biases = self._generate_offspring(self.nets[i].biases, donor_biases)
             # initialize a ffNN and set its weights to the offspring values
-            offspring_net = ffNN.ffNN(X_train, Y_train, self.nets[0].weights[1].shape[0], self.nets[0].layers - 2, self.is_classifier)
+            offspring_net = ffNN.ffNN(self.X_train, self.Y_train, self.nets[0].weights[1].shape[0], self.nets[0].layers - 2, self.is_classifier)
             offspring_net.weights = offspring_weights
             offspring_net.biases = offspring_biases
             # get the performance of the offspring net
-            pred = offspring_net.predict(X_train)
-            offspring_perf = self._performance(pred, Y_train)
+            pred = offspring_net.predict(self.X_train)
+            offspring_perf = self._performance(pred, self.Y_train)
             # if it is an improvement, add it. Otherwise, throw it away
             if offspring_perf < self.perf[i]:
                 next_nets[i] = offspring_net

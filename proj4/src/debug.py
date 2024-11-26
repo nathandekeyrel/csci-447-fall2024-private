@@ -25,8 +25,7 @@ if test == "Diff":
   else:
     X, Y, X_test, Y_test = ut.generateTestData(Xr, Yr)
   model = diff(X, Y, 38, 1, 20, 1, 0.5, is_classifier)
-  for i in range(100):
-    model.train(X, Y)
+  model.train(X_test, Y_test)
   pred = model.predict(X_test)
   if is_classifier:
     print(ev.zero_one_loss(Y_test, pred))
