@@ -7,17 +7,31 @@ import tuning as tu
 import nutuning as ntu
 import numpy as np
 import backprop as bp
+from DifferentialEvolution import DifferentialEvolution as diff
 from copy import deepcopy as cp
 from numpy import mean, square
 
 # np.seterr(all='raise')
-test = "ffnn"
+test = "Diff"
 
-X, Y = pr.preprocess_data("data/machine.data")
+Xr, Yr = pr.preprocess_data("data/forestfires.csv")
 
 Xc, Yc = pr.preprocess_data("data/breast-cancer-wisconsin.data")
 
-if test == "ffnn":
+if test == "Diff":
+  is_classifier = True
+  if is_classifier:
+    X, Y, X_test, Y_test = ut.generateTestData(Xc, Yc)
+  else:
+    X, Y, X_test, Y_test = ut.generateTestData(Xr, Yr)
+  model = diff(X, Y, 38, 1, 20, 1, 0.5, is_classifier)
+  for i in range(100):
+    model.train(X, Y)
+  pred = model.predict(X_test)
+  if is_classifier:
+    print(ev.zero_one_loss(Y_test, pred))
+  else:
+    print(ev.mse(Y_test, pred))
   pass
 
 if test == "printtuning":

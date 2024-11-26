@@ -54,6 +54,9 @@ class ffNNbackprop:
       deltas[-i] = np.dot(self.net.weights[-i + 1].T, deltas[-i + 1]) * fn.d_sigmoid(self.net.outputs[-i])
     return deltas
   
+  def predict(self, X_test):
+    self.net.predict(X_test)
+  
   def performance(self, X_test, Y_true):
     Y_pred = self.net.predict(X_test)
     if self.net.is_classifier:
