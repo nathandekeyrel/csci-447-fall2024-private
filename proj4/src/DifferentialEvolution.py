@@ -11,11 +11,11 @@ class DifferentialEvolution:
         self.binomial_crossover = binomial_crossover
         self.is_classifier = is_classifier
         self.perf = None
-        self.X_train = X_train
-        self.Y_train = Y_train
         self.initialize_model(X_train, Y_train)
     
     def initialize_model(self, X_train, Y_train):
+        self.X_train = X_train
+        self.Y_train = Y_train
         for i in range(len(self.nets)):
             self.nets[i] = ffNN.ffNN(X_train, Y_train, self.n_nodes_per_layer, self.n_hidden_layers, self.is_classifier)
             self.nets[i].weights = [np.random.uniform(low=-1.0, high=1.0, size=self.nets[i].weights[n].shape) for n in range(self.nets[i].layers - 1)]
@@ -47,7 +47,6 @@ class DifferentialEvolution:
                 bestpop = cp(self.nets)
                 epochs = 0
         self.nets = cp(bestpop)
-        pass
     
     def _train(self):
         n = len(self.nets)

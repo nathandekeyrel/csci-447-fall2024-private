@@ -8,23 +8,24 @@ import nutuning as ntu
 import numpy as np
 import backprop as bp
 from DifferentialEvolution import DifferentialEvolution as diff
+from ParticleSwarmOptimization import PSO
 from copy import deepcopy as cp
 from numpy import mean, square
 
 # np.seterr(all='raise')
 test = "Diff"
 
-Xr, Yr = pr.preprocess_data("data/forestfires.csv")
+Xr, Yr = pr.preprocess_data("data/abalone.data")
 
 Xc, Yc = pr.preprocess_data("data/breast-cancer-wisconsin.data")
 
 if test == "Diff":
-  is_classifier = True
+  is_classifier = False
   if is_classifier:
     X, Y, X_test, Y_test = ut.generateTestData(Xc, Yc)
   else:
     X, Y, X_test, Y_test = ut.generateTestData(Xr, Yr)
-  model = diff(X, Y, 38, 1, 20, 1, 0.5, is_classifier)
+  model = PSO(X, Y, 13, 1, 20, 0.8, 0.2, 0.8, is_classifier)
   model.train(X_test, Y_test)
   pred = model.predict(X_test)
   if is_classifier:
