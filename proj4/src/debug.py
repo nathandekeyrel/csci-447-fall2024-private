@@ -15,17 +15,17 @@ from numpy import mean, square
 # np.seterr(all='raise')
 test = "Diff"
 
-Xr, Yr = pr.preprocess_data("data/abalone.data")
+Xr, Yr = pr.preprocess_data("data/machine.data")
 
 Xc, Yc = pr.preprocess_data("data/breast-cancer-wisconsin.data")
 
 if test == "Diff":
-  is_classifier = False
+  is_classifier = True
   if is_classifier:
     X, Y, X_test, Y_test = ut.generateTestData(Xc, Yc)
   else:
     X, Y, X_test, Y_test = ut.generateTestData(Xr, Yr)
-  model = PSO(X, Y, 13, 1, 20, 0.8, 0.2, 0.8, is_classifier)
+  model = PSO(X, Y, 5, 1, 20, 0.8, 0.7, 0.3, is_classifier)
   model.train(X_test, Y_test)
   pred = model.predict(X_test)
   if is_classifier:

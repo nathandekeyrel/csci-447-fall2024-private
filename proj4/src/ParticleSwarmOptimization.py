@@ -99,8 +99,11 @@ class PSO:
                 bestperf = perf
                 bestpop = cp(self.nets)
                 epochs = 0
+                global_best_index = self.global_best_index
             print(epochs, perf)
+        # set our population back to the snapshot of the best population
         self.nets = cp(bestpop)
+        self.global_best_index = global_best_index
     
     def _performance(self, Y_pred, Y_true):
         # if it is a classifier, then it uses zero one loss, otherwise it does mean squared error
