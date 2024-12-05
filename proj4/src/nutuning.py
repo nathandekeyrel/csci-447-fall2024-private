@@ -1,17 +1,19 @@
 import tenfoldcv as kfxv
 import numpy as np
-import ffNN as nn
+from ParticleSwarmOptimization import PSO
+from DifferentialEvolution import DifferentialEvolution as DE
 import copy
-import evaluating as ev
 
 # ranges for the hyperparameters to be tuned
-learning_rate = (2, 4)
-batches = (0, 1.0)
-n_hidden = (0.5, 2)
-momentum = (0, 1.0)
+ps_range = [20,60]
+pso_inertia_range = [0, 1]
+pso_cog_range = [0, 1]
+pso_soc_range = [0, 1]
+de_scaling_range = [0, 2]
+de_binom_range = [0, 1]
 
 # the number of tests to run
-testsize = 100
+testsize = 30
 
 
 def generateStartingTestData(X, Y):
@@ -57,12 +59,12 @@ def generateTrainingData(Xs, Ys, i):
     Y_train = kfxv.mergedata(Ys)
     return X_train, Y_train
 
-
-def tuneFFNNRegression(X, Y, n_hidden_layers):
+def tunePSO(X, Y, n_nodes_per_layer, n_hidden_layers, is_classifier):
     """Tune the k and sigma parameters for KNN Regression using 10-fold cross-validation.
 
     :param X: Feature vector
     :param Y: Target vector
+    :param n_nodes_per_layer: the number of nodes in each hidden layer
     :param n_hidden_layers: the number of hidden layers
     :return learning_rate:
     :return batch_size: batch size as a factor of number of samples
@@ -70,38 +72,67 @@ def tuneFFNNRegression(X, Y, n_hidden_layers):
     :return momentum: 
     """
     Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
-    n_inputs = len(X[0])
-    m = np.max(Y)
-    lrlist = np.power(2, (np.random.rand(testsize) * (learning_rate[1] - learning_rate[0]) + learning_rate[0] - np.log2(m)))
-    batchlist = (np.random.rand(testsize) * np.floor(len(X) * 0.81) + 1).astype(int)
-    nhnlist = ((np.random.rand(testsize) * (n_hidden[1] - n_hidden[0]) + n_hidden[0]) * len(X[0])).astype(int)
-    momlist = np.random.rand(testsize)
+    pop_list = np.random.randint(ps_range[0], ps_range[1] + 1, testsize)
+    inertia_list = np.random.rand(testsize) * (pso_inertia_range[1] - pso_inertia_range[0]) + pso_inertia_range[0]
+    cog_list = np.random.rand(testsize) * (pso_cog_range[1] - pso_cog_range[0]) + pso_cog_range[0]
+    soc_list = np.random.rand(testsize) * (pso_soc_range[1] - pso_soc_range[0]) + pso_soc_range[0]
     perfarr = np.zeros(testsize)
     # perform 10-fold cross-validation
     for n in range(10):
         X_train, Y_train = generateTrainingData(Xs, Ys, n)
-        n_X = len(X_train)
         for i in range(testsize):
-            learning = lrlist[i]
-            batch_size = min(n_X, max(1, batchlist[i]))
-            n_hidden_nodes = nhnlist[i]
-            mom = momlist[i]
-            re = nn.ffNNRegression(X_train, Y_train, n_inputs, n_hidden_nodes, n_hidden_layers)
+            inertia = inertia_list[i]
+            cog = cog_list[i]
+            soc = soc_list[i]
+            pop = pop_list[i]
+            pso = PSO(X_train, Y_train, n_nodes_per_layer, n_hidden_layers, pop, inertia, cog, soc, is_classifier)
             # We train the model one epoch at a time until it stops improving
             # bestresults = np.square(np.max(Y_test) - np.min(Y_test))
-            bestresults = 0
-            ephochs_since_last_improvement = 0
-            epochs = 0
-            while ephochs_since_last_improvement < 5:  # if it doesn't improve after 10 iterations it ends
-                epochs += 1
-                ephochs_since_last_improvement += 1
-                re.train(1, batch_size, learning, mom)
-                predictions = re.predict(X_test)
-                results = 1 / ev.mse(Y_test, predictions)
-                if results > bestresults:
-                    ephochs_since_last_improvement = 0
-                    bestresults = results
-            perfarr[i] += bestresults
+            pso.train(X_test, Y_test)
+            perf = performance(pso, X_test, Y_test)
+            perfarr[i] += perf
     # get the indices and put them into a tuple
     index = np.argmax(perfarr)
-    return lrlist[index], batchlist[index], nhnlist[index], momlist[index]
+    return pop_list[index], inertia_list[index], cog_list[index], soc_list[index]
+
+def tuneDE(X, Y, n_nodes_per_layer, n_hidden_layers, is_classifier):
+    """Tune the k and sigma parameters for KNN Regression using 10-fold cross-validation.
+
+    :param X: Feature vector
+    :param Y: Target vector
+    :param n_nodes_per_layer: the number of nodes in each hidden layer
+    :param n_hidden_layers: the number of hidden layers
+    :return learning_rate:
+    :return batch_size: batch size as a factor of number of samples
+    :return n_hidden: the number of hidden nodes per layer as a factor of number of inputs
+    :return momentum: 
+    """
+    Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
+    pop_list = np.random.randint(ps_range[0], ps_range[1] + 1, testsize)
+    scaling_list = np.random.rand(testsize) * (de_scaling_range[1] - de_scaling_range[0]) + de_scaling_range[0]
+    binom_list = np.random.rand(testsize) * (de_binom_range[1] - de_binom_range[0]) + de_binom_range[0]
+    perfarr = np.zeros(testsize)
+    # perform 10-fold cross-validation
+    for n in range(10):
+        X_train, Y_train = generateTrainingData(Xs, Ys, n)
+        for i in range(testsize):
+            scaling = scaling_list[i]
+            binom = binom_list[i]
+            pop = pop_list[i]
+            de = DE(X_train, Y_train, n_nodes_per_layer, n_hidden_layers, pop, scaling, binom, is_classifier)
+            # We train the model one epoch at a time until it stops improving
+            # bestresults = np.square(np.max(Y_test) - np.min(Y_test))
+            de.train(X_test, Y_test)
+            perf = performance(de, X_test, Y_test)
+            perfarr[i] += perf
+    # get the indices and put them into a tuple
+    index = np.argmax(perfarr)
+    return pop_list[index], scaling_list[index], binom_list[index]
+
+def performance(model, X_test, Y_test):
+    pred = model.predict(X_test)
+    if model.is_classifier:
+        results = np.mean(pred != Y_test)
+    else:
+        results = np.mean(np.square(pred - Y_test))
+    return results

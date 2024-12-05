@@ -13,11 +13,54 @@ from copy import deepcopy as cp
 from numpy import mean, square
 
 # np.seterr(all='raise')
-test = "Diff"
+test = "fulltuning2"
 
 Xr, Yr = pr.preprocess_data("data/machine.data")
 
 Xc, Yc = pr.preprocess_data("data/breast-cancer-wisconsin.data")
+
+if test == "fulltuning2":
+  psofile = open("outputs/pso.csv", "w")
+  defile = open("outputs/de.csv", "w")
+  paths = ["data/abalone.data", "data/forestfires.csv", "data/machine.data", "data/breast-cancer-wisconsin.data", "data/glass.data", "data/soybean-small.data"]
+  nodes = [13, 25, 30, 5, 7, 38]
+  for i in range(3):
+    X, Y = pr.preprocess_data(paths[i])
+    psofile.write(paths[i])
+    psofile.write("\n")
+    psofile.flush()
+    psofile.write(str(ntu.tunePSO(X, Y, nodes[i], 1, False)))
+    psofile.write("\n")
+    psofile.flush()
+    defile.write(paths[i])
+    defile.write("\n")
+    psofile.flush()
+    defile.write(str(ntu.tuneDE(X, Y, nodes[i], 1, False)))
+    defile.write("\n")
+    psofile.flush()
+  for i in range(3, 6):
+    X, Y = pr.preprocess_data(paths[i])
+    psofile.write(paths[i])
+    psofile.write("\n")
+    psofile.flush()
+    psofile.write(str(ntu.tunePSO(X, Y, nodes[i], 1, True)))
+    psofile.write("\n")
+    psofile.flush()
+    defile.write(paths[i])
+    defile.write("\n")
+    psofile.flush()
+    defile.write(str(ntu.tuneDE(X, Y, nodes[i], 1, True)))
+    defile.write("\n")
+    psofile.flush()
+
+
+if test == "psotuning":
+  is_classifier = False
+  if is_classifier:
+    X, Y = Xc, Yc
+  else:
+    X, Y = Xr, Yr
+  print(ntu.tuneDE(X, Y, 30, 1, is_classifier))
 
 if test == "Diff":
   is_classifier = True
