@@ -1,7 +1,8 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import os
+
+# Intended to run separately from main. Generate graphs from experiment's output data
 
 regression_data = pd.read_csv('../outputs/regression_results.csv')
 classification_data = pd.read_csv('../outputs/classification_results.csv')
