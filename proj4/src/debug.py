@@ -93,24 +93,8 @@ if test == "detrain":
   X, Y, X_test, Y_test = ut.generateTestData(Xc, Yc)
   de = diff(X, Y, 5, 0, 46, 1.84, 0.45, True)
   
-  de.train(X_test, Y_test)
-  pred = de.predict(X_test)
-  print(np.mean(pred == Y_test))
-  de.initialize_model(X, Y)
-  de.train(X_test, Y_test)
-  pred = de.predict(X_test)
-  print(np.mean(pred == Y_test))
-  de.initialize_model(X, Y)
-  de.train(X_test, Y_test)
-  pred = de.predict(X_test)
-  print(np.mean(pred == Y_test))
-  de.initialize_model(X, Y)
-  de.train(X_test, Y_test)
-  pred = de.predict(X_test)
-  print(np.mean(pred == Y_test))
-  
-  # results = xv.tenfoldcrossvalidation(X, Y, de)
-  # print(np.mean([ev.zero_one_loss(r[0], r[1]) for r in results]))
+  results = xv.tenfoldcrossvalidation(X, Y, de)
+  print(np.mean([ev.zero_one_loss(r[0], r[1]) for r in results]))
 
 if test =="psotrain":
   X, Y, X_test, Y_test = ut.generateTestData(Xc, Yc)
