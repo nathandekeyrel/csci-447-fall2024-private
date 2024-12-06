@@ -3,7 +3,7 @@ from sklearn.preprocessing import OneHotEncoder
 
 
 class ffNN:
-    def __init__(self, X, Y, n_hidden, n_hidden_layers, is_classifier):
+    def __init__(self, X, y, n_hidden, n_hidden_layers, is_classifier):
         self.X = X
         self.layers = n_hidden_layers + 2
         self.is_classifier = is_classifier
@@ -11,12 +11,12 @@ class ffNN:
         self.biases = []
         self.outputs = None
         n_input = X.shape[1]
-        self.Y = Y.reshape(-1, 1)
+        self.y = y.reshape(-1, 1)
         if is_classifier:
             encoder = OneHotEncoder(sparse_output=False)
-            encoder.fit(self.Y)
-            self.Y = encoder.transform(self.Y)
-        n_output = self.Y.shape[1]
+            encoder.fit(self.y)
+            self.y = encoder.transform(self.y)
+        n_output = self.y.shape[1]
         dims = [[0, n_input]]
         i = -1
         for i in range(self.layers - 2):
