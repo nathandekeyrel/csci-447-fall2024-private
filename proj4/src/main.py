@@ -164,6 +164,7 @@ def main():
         1: {'population': 51, 'inertia': 0.92, 'cognitive_update_rate': 0.75, 'social_update_rate': 0.51},
         2: {'population': 21, 'inertia': 0.95, 'cognitive_update_rate': 0.11, 'social_update_rate': 0.67}
     }
+
     # Hardware
     machine_ga_params = {
         0: {'population': 50, 'tournament_size': 4},
@@ -205,11 +206,11 @@ def main():
     ###################################
     # Classification Datasets
     ###################################
-    # classification_datasets = [
-    #     DatasetConfig("Cancer", "../data/breast-cancer-wisconsin.data", [5, 5, 5]),
-    #     DatasetConfig("Glass", "../data/glass.data", [7, 7, 7]),
-    #     DatasetConfig("Soybean", "../data/soybean-small.data", [38, 38, 38])
-    # ]
+    classification_datasets = [
+        DatasetConfig("Cancer", "../data/breast-cancer-wisconsin.data", [5, 5, 5]),
+        DatasetConfig("Glass", "../data/glass.data", [7, 7, 7]),
+        DatasetConfig("Soybean", "../data/soybean-small.data", [38, 38, 38])
+    ]
 
     ###################################
     # Regression Datasets
@@ -224,31 +225,31 @@ def main():
     # Run Classification
     ###################################
     print("\nRunning Classification Experiments...")
-    # classification_data = load_and_preprocess_data(classification_datasets)
+    classification_data = load_and_preprocess_data(classification_datasets)
 
     # Cancer
-    # cancer_models = [
-    #     ModelConfig("GENETIC ALGORITHM", GeneticAlgorithm, cancer_ga_params),
-    #     ModelConfig("DIFFERENTIAL EVOLUTION", DifferentialEvolution, cancer_de_params),
-    #     ModelConfig("PARTICLE SWARM OPTIMIZATION", PSO, cancer_pso_params)
-    # ]
-    # run_all_experiments({"Cancer": classification_data["Cancer"]}, cancer_models, True)
+    cancer_models = [
+        ModelConfig("GENETIC ALGORITHM", GeneticAlgorithm, cancer_ga_params),
+        ModelConfig("DIFFERENTIAL EVOLUTION", DifferentialEvolution, cancer_de_params),
+        ModelConfig("PARTICLE SWARM OPTIMIZATION", PSO, cancer_pso_params)
+    ]
+    run_all_experiments({"Cancer": classification_data["Cancer"]}, cancer_models, True)
 
     # Glass
-    # glass_models = [
-    #     # ModelConfig("GENETIC ALGORITHM", GeneticAlgorithm, glass_ga_params),
-    #     ModelConfig("DIFFERENTIAL EVOLUTION", DifferentialEvolution, glass_de_params),
-    #     ModelConfig("PARTICLE SWARM OPTIMIZATION", PSO, glass_pso_params)
-    # ]
-    # run_all_experiments({"Glass": classification_data["Glass"]}, glass_models, True)
+    glass_models = [
+        ModelConfig("GENETIC ALGORITHM", GeneticAlgorithm, glass_ga_params),
+        ModelConfig("DIFFERENTIAL EVOLUTION", DifferentialEvolution, glass_de_params),
+        ModelConfig("PARTICLE SWARM OPTIMIZATION", PSO, glass_pso_params)
+    ]
+    run_all_experiments({"Glass": classification_data["Glass"]}, glass_models, True)
 
     # Soybean
-    # soybean_models = [
-    #     # ModelConfig("GENETIC ALGORITHM", GeneticAlgorithm, soybean_ga_params),
-    #     ModelConfig("DIFFERENTIAL EVOLUTION", DifferentialEvolution, soybean_de_params),
-    #     ModelConfig("PARTICLE SWARM OPTIMIZATION", PSO, soybean_pso_params)
-    # ]
-    # run_all_experiments({"Soybean": classification_data["Soybean"]}, soybean_models, True)
+    soybean_models = [
+        ModelConfig("GENETIC ALGORITHM", GeneticAlgorithm, soybean_ga_params),
+        ModelConfig("DIFFERENTIAL EVOLUTION", DifferentialEvolution, soybean_de_params),
+        ModelConfig("PARTICLE SWARM OPTIMIZATION", PSO, soybean_pso_params)
+    ]
+    run_all_experiments({"Soybean": classification_data["Soybean"]}, soybean_models, True)
 
     ###################################
     # Run Regression
@@ -264,21 +265,21 @@ def main():
     ]
     run_all_experiments({"Abalone": regression_data["Abalone"]}, abalone_models, False)
 
-    # # Machine
-    # machine_models = [
-    #     ModelConfig("GENETIC ALGORITHM", GeneticAlgorithm, machine_ga_params),
-    #     ModelConfig("DIFFERENTIAL EVOLUTION", DifferentialEvolution, machine_de_params),
-    #     ModelConfig("PARTICLE SWARM OPTIMIZATION", PSO, machine_pso_params)
-    # ]
-    # run_all_experiments({"Hardware": regression_data["Hardware"]}, machine_models, False)
-    #
-    # # Fires
-    # fires_models = [
-    #     ModelConfig("GENETIC ALGORITHM", GeneticAlgorithm, fires_ga_params),
-    #     ModelConfig("DIFFERENTIAL EVOLUTION", DifferentialEvolution, fires_de_params),
-    #     ModelConfig("PARTICLE SWARM OPTIMIZATION", PSO, fires_pso_params)
-    # ]
-    # run_all_experiments({"Fires": regression_data["Fires"]}, fires_models, False)
+    # Machine
+    machine_models = [
+        ModelConfig("GENETIC ALGORITHM", GeneticAlgorithm, machine_ga_params),
+        ModelConfig("DIFFERENTIAL EVOLUTION", DifferentialEvolution, machine_de_params),
+        ModelConfig("PARTICLE SWARM OPTIMIZATION", PSO, machine_pso_params)
+    ]
+    run_all_experiments({"Hardware": regression_data["Hardware"]}, machine_models, False)
+
+    # Fires
+    fires_models = [
+        ModelConfig("GENETIC ALGORITHM", GeneticAlgorithm, fires_ga_params),
+        ModelConfig("DIFFERENTIAL EVOLUTION", DifferentialEvolution, fires_de_params),
+        ModelConfig("PARTICLE SWARM OPTIMIZATION", PSO, fires_pso_params)
+    ]
+    run_all_experiments({"Fires": regression_data["Fires"]}, fires_models, False)
 
 
 if __name__ == "__main__":
