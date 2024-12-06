@@ -1,4 +1,4 @@
-Dataset,Hidden_Layers,Tournament_Size,Population_Size
-Fires,0,4,80
-Fires,1,4,80
-Fires,2,4,80
+Hidden_Layers,Population_Size,Tournament_Size
+Fires,0,80,4
+Fires,1,80,4
+Fires,2,80,4

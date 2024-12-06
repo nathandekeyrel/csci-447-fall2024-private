@@ -1,4 +1,4 @@
-Dataset,Hidden_Layers,Tournament_Size,Population_Size
-Cancer,0,3,80
-Cancer,1,3,80
-Cancer,2,3,80
+Hidden_Layers,Population_Size,Tournament_Size
+0,80,3
+1,80,3
+2,80,3
