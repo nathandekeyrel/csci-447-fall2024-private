@@ -91,7 +91,7 @@ def tunePSO(X, Y, n_nodes_per_layer, n_hidden_layers, is_classifier):
             perfarr[i] += perf
         print(n, "\n", perfarr)
     # get the indices and put them into a tuple
-    index = np.argmax(perfarr)
+    index = np.argmin(perfarr)
     return pop_list[index], inertia_list[index], cog_list[index], soc_list[index]
 
 def tuneDE(X, Y, n_nodes_per_layer, n_hidden_layers, is_classifier):
@@ -124,7 +124,7 @@ def tuneDE(X, Y, n_nodes_per_layer, n_hidden_layers, is_classifier):
             perfarr[i] += perf
         print(n, "\n", perfarr)
     # get the indices and put them into a tuple
-    index = np.argmax(perfarr)
+    index = np.argmin(perfarr)
     return pop_list[index], scaling_list[index], binom_list[index]
 
 def performance(model, X_test, Y_test):
