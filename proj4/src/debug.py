@@ -15,43 +15,44 @@ import time
 import multiprocessing as mp
 
 # np.seterr(all='raise')
-test = "detrain"
+test = "fulltuningmp"
 
 Xr, Yr = pr.preprocess_data("data/machine.data")
 
 Xc, Yc = pr.preprocess_data("data/breast-cancer-wisconsin.data")
 
-def mptune(path, nodes, is_classifier, isPSO):
+def mptune(path, nodes, is_classifier, isPSO, layers):
   if path == "forestfires":
     data = "data/" + path + ".csv"
   else:
     data = "data/" + path + ".data"
   if isPSO:
-    output = "outputs/pso" + path + ".csv"
+    output = "outputs/pso" + path + str(layers) + ".csv"
   else:
-    output = "outputs/de" + path + ".csv"
+    output = "outputs/de" + path + str(layers) + ".csv"
   X, Y = pr.preprocess_data(data)
   file = open(output, "w")
   file.write(path)
   file.flush()
   if isPSO:
-    file.write(str(ntu.tunePSO(X, Y, nodes, 1, is_classifier)))
+    file.write(str(ntu.tunePSO(X, Y, nodes, layers, is_classifier)))
   else:
-    file.write(str(ntu.tuneDE(X, Y, nodes, 1, is_classifier)))
+    file.write(str(ntu.tuneDE(X, Y, nodes, layers, is_classifier)))
 
 if test == "fulltuningmp":
   paths = ["abalone", "forestfires", "machine", "breast-cancer-wisconsin", "glass", "soybean-small"]
   nodes = [13, 25, 30, 5, 7, 38]
   is_classifier = [False, False, False, True, True, True]
-  demps = [mp.Process(target=mptune, args=(paths[0], nodes[0], is_classifier[0], False))]
-  psomps = [mp.Process(target=mptune, args=(paths[0], nodes[0], is_classifier[0], True))]
+  demps = [mp.Process(target=mptune, args=(paths[0], nodes[0], is_classifier[0], False, 2))]
+  # psomps = [mp.Process(target=mptune, args=(paths[0], nodes[0], is_classifier[0], True, 1)),
+  #           mp.Process(target=mptune, args=(paths[0], nodes[0], is_classifier[0], True, 2))]
   for demp in demps:
     demp.start()
-  for psomp in psomps:
-    psomp.start()
+  # for psomp in psomps:
+  #   psomp.start()
   
-  for psomp in psomps:
-    psomp.join()
+  # for psomp in psomps:
+  #   psomp.join()
   for demp in demps:
     demp.join()
 
@@ -95,12 +96,6 @@ if test == "detrain":
   
   results = xv.tenfoldcrossvalidation(X, Y, de)
   print(np.mean([ev.zero_one_loss(r[0], r[1]) for r in results]))
-
-if test =="psotrain":
-  X, Y, X_test, Y_test = ut.generateTestData(Xc, Yc)
-  pso = PSO(X, Y, 5, 0, 41, 0.61, 0.51, 0.083, True)
-  results = xv.tenfoldcrossvalidation(X, Y, pso)
-  print(ev.zero_one_loss(Y_test, pred))
 
 if test == "psotuning":
   is_classifier = False

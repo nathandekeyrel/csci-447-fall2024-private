@@ -93,6 +93,7 @@ class PSO:
     def train(self, X_test, Y_test):
         bestperf = 0
         epochs = 0
+        global_best_index = self.global_best_index
         while epochs < 10:
             epochs += 1
             self._train()
