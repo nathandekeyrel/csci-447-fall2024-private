@@ -7,6 +7,9 @@ from DifferentialEvolution import DifferentialEvolution
 from ParticleSwarmOptimization import PSO
 
 
+##############################################
+# fix
+##############################################
 class DatasetConfig:
     def __init__(self, name, filepath, nodes_per_layer):
         self.name = name
@@ -77,7 +80,7 @@ def run_all_experiments(data_dict, model_configs, is_classifier=True):
 
         for model_config in model_configs:
             print(f"\n{model_config.name}:")
-            for n_layers in range(3):
+            for n_layers in [2]:
                 run_experiment(X, y, model_config, n_layers,
                                nodes_per_layer[n_layers], is_classifier)
 
@@ -89,20 +92,14 @@ def demo():
 
     # Soybean
     soybean_ga_params = {
-        0: {'population': 80, 'tournament_size': 2},
-        1: {'population': 80, 'tournament_size': 3},
         2: {'population': 30, 'tournament_size': 4}
     }
 
     soybean_de_params = {
-        0: {'population': 30, 'scaling': 1.18, 'binomial_crossover': 0.50},
-        1: {'population': 32, 'scaling': 1.14, 'binomial_crossover': 0.47},
         2: {'population': 32, 'scaling': 1.12, 'binomial_crossover': 0.48}
     }
 
     soybean_pso_params = {
-        0: {'population': 57, 'inertia': 0.53, 'cognitive_update_rate': 0.40, 'social_update_rate': 0.28},
-        1: {'population': 46, 'inertia': 0.20, 'cognitive_update_rate': 0.71, 'social_update_rate': 0.51},
         2: {'population': 50, 'inertia': 0.031, 'cognitive_update_rate': 0.74, 'social_update_rate': 0.22}
     }
 
@@ -132,20 +129,14 @@ def demo():
     ##################################
     # Fires
     fires_ga_params = {
-        0: {'population': 50, 'tournament_size': 3},
-        1: {'population': 30, 'tournament_size': 4},
         2: {'population': 80, 'tournament_size': 4}
     }
 
     fires_de_params = {
-        0: {'population': 31, 'scaling': 1.72, 'binomial_crossover': 0.63},
-        1: {'population': 31, 'scaling': 1.77, 'binomial_crossover': 0.67},
         2: {'population': 33, 'scaling': 1.81, 'binomial_crossover': 0.67}
     }
 
     fires_pso_params = {
-        0: {'population': 53, 'inertia': 0.81, 'cognitive_update_rate': 0.85, 'social_update_rate': 0.74},
-        1: {'population': 50, 'inertia': 0.96, 'cognitive_update_rate': 0.78, 'social_update_rate': 0.83},
         2: {'population': 55, 'inertia': 0.90, 'cognitive_update_rate': 0.81, 'social_update_rate': 0.80}
     }
 
@@ -170,3 +161,6 @@ def demo():
     ]
     run_all_experiments({"Fires": regression_data["Fires"]}, fires_models, False)
 
+
+if __name__ == "__main__":
+    demo()
