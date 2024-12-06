@@ -53,7 +53,8 @@ class GeneticAlgorithm:
 
         return child
 
-    def _gaussian_mutate(self, child, sigma=0.1):
+    @staticmethod
+    def _gaussian_mutate(child, sigma=0.1):
         mutated_weights = [
             weights + np.random.normal(0, sigma, size=weights.shape) for weights in child.weights
         ]
@@ -92,6 +93,15 @@ class GeneticAlgorithm:
         best_perf = 0
         best_pop = None
         epochs = 0
+        improvement_threshold = 0.0001
+
+        pred = self.predict(X_test)
+        if self.is_classifier:
+            best_perf = 1 - self._performance(pred, y_test)
+        else:
+            best_perf = 1 / self._performance(pred, y_test)
+        best_pop = cp(self.nets)
+
         while epochs < 25:
             epochs += 1
             self._train()
@@ -102,7 +112,7 @@ class GeneticAlgorithm:
             else:
                 perf = 1 / self._performance(pred, y_test)
 
-            if perf > best_perf:
+            if perf > best_perf and (perf - best_perf) > improvement_threshold:
                 best_perf = perf
                 best_pop = cp(self.nets)
                 epochs = 0
