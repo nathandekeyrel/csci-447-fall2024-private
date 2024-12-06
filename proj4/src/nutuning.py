@@ -13,7 +13,7 @@ de_scaling_range = [0, 2]
 de_binom_range = [0, 1]
 
 # the number of tests to run
-testsize = 30
+testsize = 25
 
 
 def generateStartingTestData(X, Y):
@@ -86,11 +86,10 @@ def tunePSO(X, Y, n_nodes_per_layer, n_hidden_layers, is_classifier):
             soc = soc_list[i]
             pop = pop_list[i]
             pso = PSO(X_train, Y_train, n_nodes_per_layer, n_hidden_layers, pop, inertia, cog, soc, is_classifier)
-            # We train the model one epoch at a time until it stops improving
-            # bestresults = np.square(np.max(Y_test) - np.min(Y_test))
             pso.train(X_test, Y_test)
             perf = performance(pso, X_test, Y_test)
             perfarr[i] += perf
+        print(n, "\n", perfarr)
     # get the indices and put them into a tuple
     index = np.argmax(perfarr)
     return pop_list[index], inertia_list[index], cog_list[index], soc_list[index]
@@ -120,11 +119,10 @@ def tuneDE(X, Y, n_nodes_per_layer, n_hidden_layers, is_classifier):
             binom = binom_list[i]
             pop = pop_list[i]
             de = DE(X_train, Y_train, n_nodes_per_layer, n_hidden_layers, pop, scaling, binom, is_classifier)
-            # We train the model one epoch at a time until it stops improving
-            # bestresults = np.square(np.max(Y_test) - np.min(Y_test))
             de.train(X_test, Y_test)
             perf = performance(de, X_test, Y_test)
             perfarr[i] += perf
+        print(n, "\n", perfarr)
     # get the indices and put them into a tuple
     index = np.argmax(perfarr)
     return pop_list[index], scaling_list[index], binom_list[index]

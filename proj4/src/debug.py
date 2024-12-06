@@ -11,13 +11,51 @@ from DifferentialEvolution import DifferentialEvolution as diff
 from ParticleSwarmOptimization import PSO
 from copy import deepcopy as cp
 from numpy import mean, square
+import time
+import multiprocessing as mp
 
 # np.seterr(all='raise')
-test = "fulltuning2"
+test = "fulltuningmp"
 
 Xr, Yr = pr.preprocess_data("data/machine.data")
 
 Xc, Yc = pr.preprocess_data("data/breast-cancer-wisconsin.data")
+
+def mptune(path, nodes, is_classifier, isPSO):
+  if path == "forestfires":
+    data = "data/" + path + ".csv"
+  else:
+    data = "data/" + path + ".data"
+  if isPSO:
+    output = "outputs/pso" + path + ".csv"
+  else:
+    output = "outputs/de" + path + ".csv"
+  X, Y = pr.preprocess_data(data)
+  file = open(output, "w")
+  file.write(path)
+  file.flush()
+  if isPSO:
+    file.write(str(ntu.tunePSO(X, Y, nodes, 1, is_classifier)))
+  else:
+    file.write(str(ntu.tuneDE(X, Y, nodes, 1, is_classifier)))
+
+if test == "fulltuningmp":
+  paths = ["abalone", "forestfires", "machine", "breast-cancer-wisconsin", "glass", "soybean-small"]
+  nodes = [13, 25, 30, 5, 7, 38]
+  is_classifier = [False, False, False, True, True, True]
+  demps = [mp.Process(target=mptune, args=(paths[0], nodes[0], is_classifier[0], False))]
+  psomps = [mp.Process(target=mptune, args=(paths[0], nodes[0], is_classifier[0], True)),
+            mp.Process(target=mptune, args=(paths[2], nodes[2], is_classifier[2], True)),
+            mp.Process(target=mptune, args=(paths[5], nodes[5], is_classifier[5], True))]
+  for demp in demps:
+    demp.start()
+  for psomp in psomps:
+    psomp.start()
+  
+  for psomp in psomps:
+    psomp.join()
+  for demp in demps:
+    demp.join()
 
 if test == "fulltuning2":
   psofile = open("outputs/pso.csv", "w")
@@ -53,6 +91,21 @@ if test == "fulltuning2":
     defile.write("\n")
     psofile.flush()
 
+if test == "detrain":
+  X, Y, X_test, Y_test = ut.generateTestData(Xr, Yr)
+  de = diff(X, Y, 30, 1, 50, 0.5, 0.5, False)
+  start = time.time()
+  de.train(X_test, Y_test)
+  end = time.time()
+  print(end - start)
+
+if test =="psotrain":
+  X, Y, X_test, Y_test = ut.generateTestData(Xr, Yr)
+  pso = PSO(X, Y, 30, 1, 50, 0.5, 0.5, 0.5, False)
+  start_time = time.time()
+  pso.train(X_test, Y_test)
+  end_time = time.time()
+  print(end_time - start_time)
 
 if test == "psotuning":
   is_classifier = False

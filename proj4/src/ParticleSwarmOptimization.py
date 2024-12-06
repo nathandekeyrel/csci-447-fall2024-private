@@ -85,9 +85,8 @@ class PSO:
     
     def train(self, X_test, Y_test):
         bestperf = 0
-        bestpop = cp(self.nets)
         epochs = 0
-        while epochs < 25:
+        while epochs < 10:
             epochs += 1
             self._train()
             pred = self.predict(X_test)
@@ -97,11 +96,8 @@ class PSO:
                 perf = 1 / self._performance(pred, Y_test)
             if perf > bestperf:
                 bestperf = perf
-                bestpop = cp(self.nets)
                 epochs = 0
                 global_best_index = self.global_best_index
-        # set our population back to the snapshot of the best population
-        self.nets = cp(bestpop)
         self.global_best_index = global_best_index
     
     def _performance(self, Y_pred, Y_true):

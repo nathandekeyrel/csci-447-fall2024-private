@@ -1,6 +1,8 @@
 import ffNN
 import numpy as np
 from copy import deepcopy as cp
+import threading as th
+import multiprocessing as mp
 
 class DifferentialEvolution:
     def __init__(self, X_train, Y_train, n_nodes_per_layer, n_hidden_layers, population, scaling, binomial_crossover, is_classifier):
@@ -32,9 +34,8 @@ class DifferentialEvolution:
     
     def train(self, X_test, Y_test):
         bestperf = 0
-        bestpop = cp(self.nets)
         epochs = 0
-        while epochs < 25:
+        while epochs < 10:
             epochs += 1
             self._train()
             pred = self.predict(X_test)
@@ -44,9 +45,7 @@ class DifferentialEvolution:
                 perf = 1 / self._performance(pred, Y_test)
             if perf > bestperf:
                 bestperf = perf
-                bestpop = cp(self.nets)
                 epochs = 0
-        self.nets = cp(bestpop)
     
     def _train(self):
         n = len(self.nets)
@@ -59,9 +58,9 @@ class DifferentialEvolution:
             for i in range(n):
                 Y_pred = self.nets[i].predict(self.X_train)
                 self.perf[i] = self._performance(Y_pred, self.Y_train)
+        # get the indices of the sorted performance values
+        sorted_indices = np.argsort(self.perf)
         for i in range(n):
-            # get the indices of the sorted performance values
-            sorted_indices = np.argsort(self.perf)
             # find the best performance for the target, or else the second best if the current index is the best
             if sorted_indices[0] == i:
                 target_index = sorted_indices[1]
