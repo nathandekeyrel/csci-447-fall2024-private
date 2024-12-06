@@ -1,0 +1,5 @@
+machine
+layers, population, scaling, binomal
+0, 54, 1.25, 0.83
+1, 50, 1.32, 0.95
+2, 49, 1.32, 0.89

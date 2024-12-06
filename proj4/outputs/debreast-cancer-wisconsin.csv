@@ -1,0 +1,5 @@
+breast-cancer-wisconsin
+layers, population, scaling, binomal
+0, 48, 1.75, 0.48
+1, 46, 1.84, 0.45
+2, 48, 1.79, 0.43
