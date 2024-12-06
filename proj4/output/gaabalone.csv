@@ -1,0 +1,4 @@
+Dataset,Hidden_Layers,Tournament_Size,Population_Size
+Abalone,0,4,80
+Abalone,1,4,80
+Abalone,2,4,80

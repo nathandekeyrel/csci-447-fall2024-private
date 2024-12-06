@@ -1,0 +1,4 @@
+Dataset,Hidden_Layers,Tournament_Size,Population_Size
+Glass,0,3,80
+Glass,1,3,30
+Glass,2,3,50

@@ -14,7 +14,7 @@ class GeneticAlgorithm:
         self.is_classifier = is_classifier
         self.best_perf = 0
         self.tournament_size = tournament_size
-        self.best_network_index = None
+        self.best_network_index = 0
         self.initialize_model(X_train, y_train)
 
     def initialize_model(self, X_train, y_train):

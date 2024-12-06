@@ -35,8 +35,8 @@ def main():
     print("=" * 75)
 
     # 0 hidden layers
-    print("Running 0 hidden layers...")
-    results = kfxc.tenfoldcrossvalidationC(X_cancer, y_cancer,
+    print("Running GA...")
+    results = kfxc.tenfoldcrossvalidation(X_cancer, y_cancer,
                                            hidden_layers=0,
                                            nodes_per_hidden_layer=5,
                                            batch_size=8,

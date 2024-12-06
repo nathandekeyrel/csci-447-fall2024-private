@@ -1,8 +1,7 @@
 import tenfoldcv as kfxv
 import numpy as np
-import ffNN as nn
+from GeneticAlgorithm import GeneticAlgorithm
 import copy
-import evaluating as ev
 from preprocess import preprocess_data
 
 
@@ -60,145 +59,173 @@ def get_hidden_nodes(n_input, n_output):
     return [(n_input + n_output) // 2]
 
 
-def tuneNNClassifier(X, Y, n_hidden_layers):
-    """Tune neural network using fixed parameter ranges for classification tasks.
-    Preforms grid search over learning rates, momentum, and batch sizes. Implements
-    early stopping with patience to prevent overfitting.
+def tune_ga_params(X, Y, n_nodes_per_layer, n_hidden_layers, is_classifier):
+    """Tune GA hyperparameters using 10-fold cross-validation.
 
-    :param X: features from dataset
-    :param Y: target vector of class labels
-    :param n_hidden_layers: number of hidden layers in the network architecture
-    :return: dictionary containing the best parameters found:
+    :param X: Feature vectors
+    :param Y: Target values
+    :param n_nodes_per_layer: Number of nodes per hidden layer
+    :param n_hidden_layers: Number of hidden layers
+    :param is_classifier: Boolean indicating if this is a classification task
+    :return: Tuple of (best_params, results_dict)
     """
-    Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
-    n_input = X.shape[1]
-    n_output = len(np.unique(Y))
+    tournament_sizes = [2, 3, 4]  # smaller k due to higher selection pressure
+    population_sizes = [30, 50, 80]
 
-    # ranges for grid search
-    learning_rates = [0.1, 0.3, 0.5, 0.7, 0.9]
-    momentum_values = [0.7, 0.8, 0.9, 0.95]
-    batch_sizes = [4, 8, 16, 32, 64, 128]
-    hidden_nodes = get_hidden_nodes(n_input, n_output)[0]
+    Xs, Ys = kfxv.kfold(X, Y, 10)
 
-    best_params = {
-        'hidden_nodes': hidden_nodes,
-        'learning_rate': 0,
-        'momentum': 0,
-        'batch_size': 0,
-        'n_hidden_layers': n_hidden_layers,
-        'best_score': float('inf')
-    }
+    best_perf = 0
+    best_params = None
+    results = {}
 
-    for lr in learning_rates:
-        for momentum in momentum_values:
-            for batch_size in batch_sizes:
-                total_loss = 0
+    for k in tournament_sizes:
+        for pop in population_sizes:
+            total_perf = 0
 
-                for i in range(10):  # ten-fold cv
-                    X_val = np.array(Xs[i])  # current fold is validation set
-                    Y_val = np.array(Ys[i])
-                    X_train, Y_train = get_train_data(Xs, Ys, i)
+            for i in range(10):
+                # validation folds
+                X_val = np.array(Xs[i])
+                Y_val = np.array(Ys[i])
 
-                    model = nn.ffNNClassification(
-                        n_input=n_input,
-                        n_hidden=hidden_nodes,
-                        n_hidden_layers=n_hidden_layers,
-                        n_output=n_output
-                    )
+                # merge remaining folds for training
+                X_train, Y_train = kfxv.mergedata([Xs[j] for j in range(10) if j != i]), \
+                    kfxv.mergedata([Ys[j] for j in range(10) if j != i])
 
-                    # early stopping stuff
-                    best_fold_loss = float('inf')
-                    epochs_since_improvement = 0
-                    epoch = 0
-                    min_epochs = 20  # force training for x epochs
-                    patience = 10  # stop after x epochs without improvement
+                # initialize ga model
+                ga = GeneticAlgorithm(
+                    X_train, Y_train,
+                    n_nodes_per_layer=n_nodes_per_layer,
+                    n_hidden_layers=n_hidden_layers,
+                    population=pop,
+                    tournament_size=k,
+                    is_classifier=is_classifier
+                )
 
-                    while (epochs_since_improvement < patience) or (epoch < min_epochs):
-                        epoch += 1
-                        epochs_since_improvement += 1
+                ga.train(X_val, Y_val)
 
-                        model.train(
-                            X=X_train,
-                            y=Y_train,
-                            epochs=1,
-                            batchsize=batch_size,
-                            learning_rate=lr,
-                            momentum=momentum
-                        )
+                # performance, yeah I know it accesses private methods but i don't think it matters
+                y_pred = ga.predict(X_val)
+                perf = 1 - ga._performance(y_pred, Y_val) if is_classifier else \
+                    1 / ga._performance(y_pred, Y_val)
 
-                        if epoch % 5 == 0 or epoch < min_epochs:  # evaluate every 5 epochs
-                            y_pred = model.predict(X_val)
-                            fold_loss = ev.zero_one_loss(Y_val, y_pred)
+                total_perf += perf
 
-                            if fold_loss < best_fold_loss:
-                                best_fold_loss = fold_loss
-                                epochs_since_improvement = 0
+            avg_perf = total_perf / 10
+            results[(k, pop)] = avg_perf
 
-                    total_loss += best_fold_loss
+            print(f"k={k}, pop={pop}: avg_performance={avg_perf:.4f}")
 
-                avg_loss = total_loss / 10
+            if avg_perf > best_perf:
+                best_perf = avg_perf
+                best_params = (k, pop)
+                print(f"New best parameters found! Performance: {avg_perf:.4f}")
 
-                print(f"LR: {lr:.2f}, Momentum: {momentum:.2f}, Batch: {batch_size}, Loss: {avg_loss:.4f}")
-
-                # update with current best scores
-                if avg_loss < best_params['best_score']:
-                    best_params.update({
-                        'hidden_nodes': hidden_nodes,
-                        'learning_rate': lr,
-                        'momentum': momentum,
-                        'batch_size': batch_size,
-                        'best_score': avg_loss
-                    })
-                    print(f"New best score: {avg_loss:.4f}")
-
-    return best_params
+    return best_params, results
 
 
 if __name__ == "__main__":
-
     ###################################
     # Tune Classification
     ###################################
 
-    # load datasets
-    cancer_filepath = "../data/breast-cancer-wisconsin.data"
-    glass_filepath = "../data/glass.data"
-    soybean_filepath = "../data/soybean-small.data"
+    # # load and preprocess classification datasets
+    # cancer_filepath = "../data/breast-cancer-wisconsin.data"
+    # glass_filepath = "../data/glass.data"
+    # soybean_filepath = "../data/soybean-small.data"
+    #
+    # X_cancer, y_cancer = preprocess_data(cancer_filepath)
+    # X_glass, y_glass = preprocess_data(glass_filepath)
+    # X_soybean, y_soybean = preprocess_data(soybean_filepath)
+    #
+    # classification_configs = {
+    #     'Cancer': {
+    #         'X': X_cancer,
+    #         'y': y_cancer,
+    #         'nodes': 5,
+    #     },
+    #     'Glass': {
+    #         'X': X_glass,
+    #         'y': y_glass,
+    #         'nodes': 7,
+    #     },
+    #     'Soybean': {
+    #         'X': X_soybean,
+    #         'y': y_soybean,
+    #         'nodes': 38,
+    #     }
+    # }
+    #
+    # print("\nClassification Results:")
+    # for name, config in classification_configs.items():
+    #     print(f"\n{name} Dataset:")
+    #     for n_hidden in [0, 1, 2]:
+    #         print(f"\n{n_hidden} hidden layers:")
+    #         best_params, results = tune_ga_params(
+    #             config['X'], config['y'],
+    #             n_nodes_per_layer=config['nodes'],
+    #             n_hidden_layers=n_hidden,
+    #             is_classifier=True
+    #         )
+    #         print(f"Best parameters found:")
+    #         print(f"Tournament size: {best_params[0]}")
+    #         print(f"Population size: {best_params[1]}")
+    #         print(f"Performance: {results[best_params]:.4f}")
 
-    # preprocess data
-    X_cancer, y_cancer = preprocess_data(cancer_filepath)
-    X_glass, y_glass = preprocess_data(glass_filepath)
-    X_soybean, y_soybean = preprocess_data(soybean_filepath)
+    ###################################
+    # Tune Regression
+    ###################################
 
-    # print results for Cancer dataset
-    print("\nCancer Results:")
-    for n_hidden in [0, 1, 2]:
-        print(f"\n{n_hidden} hidden layers:")
-        cancer_results = tuneNNClassifier(X_cancer, y_cancer, n_hidden)
-        print(f"Learning Rate: {cancer_results['learning_rate']:.4f}")
-        print(f"Momentum: {cancer_results['momentum']:.4f}")
-        print(f"Batch Size: {cancer_results['batch_size']}")
-        print(f"Hidden Nodes: {cancer_results['hidden_nodes']}")
-        print(f"Best Score: {cancer_results['best_score']:.4f}")
+    # abalone_filepath = "../data/abalone.data"
+    hardware_filepath = "../data/machine.data"
+    fires_filepath = "../data/forestfires.csv"
 
-    # print results for Glass dataset
-    print("\nGlass Results:")
-    for n_hidden in [0, 1, 2]:
-        print(f"\n{n_hidden} hidden layers:")
-        glass_results = tuneNNClassifier(X_glass, y_glass, n_hidden)
-        print(f"Learning Rate: {glass_results['learning_rate']:.4f}")
-        print(f"Momentum: {glass_results['momentum']:.4f}")
-        print(f"Batch Size: {glass_results['batch_size']}")
-        print(f"Hidden Nodes: {glass_results['hidden_nodes']}")
-        print(f"Best Score: {glass_results['best_score']:.4f}")
+    # X_abalone, y_abalone = preprocess_data(abalone_filepath)
+    X_hardware, y_hardware = preprocess_data(hardware_filepath)
+    X_fires, y_fires = preprocess_data(fires_filepath)
 
-    # print results for Soybean dataset
-    print("\nSoybean Results:")
-    for n_hidden in [0, 1, 2]:
-        print(f"\n{n_hidden} hidden layers:")
-        soybean_results = tuneNNClassifier(X_soybean, y_soybean, n_hidden)
-        print(f"Learning Rate: {soybean_results['learning_rate']:.4f}")
-        print(f"Momentum: {soybean_results['momentum']:.4f}")
-        print(f"Batch Size: {soybean_results['batch_size']}")
-        print(f"Hidden Nodes: {soybean_results['hidden_nodes']}")
-        print(f"Best Score: {soybean_results['best_score']:.4f}")
+    regression_configs = {
+        # 'Abalone': {
+        #     'X': X_abalone,
+        #     'y': y_abalone,
+        #     'nodes': {
+        #         0: 13,
+        #         1: 13,
+        #         2: 12
+        #     }
+        # },
+        'Hardware': {
+            'X': X_hardware,
+            'y': y_hardware,
+            'nodes': {
+                0: 30,
+                1: 28,
+                2: 64
+            }
+        },
+        'Fires': {
+            'X': X_fires,
+            'y': y_fires,
+            'nodes': {
+                0: 54,
+                1: 25,
+                2: 34
+            }
+        }
+    }
+
+    # Run regression tuning
+    print("\nRegression Results:")
+    for name, config in regression_configs.items():
+        print(f"\n{name} Dataset:")
+        for n_hidden in [0, 1, 2]:
+            print(f"\n{n_hidden} hidden layers:")
+            best_params, results = tune_ga_params(
+                config['X'], config['y'],
+                n_nodes_per_layer=config['nodes'][n_hidden],
+                n_hidden_layers=n_hidden,
+                is_classifier=False
+            )
+            print(f"Best parameters found:")
+            print(f"Tournament size: {best_params[0]}")
+            print(f"Population size: {best_params[1]}")
+            print(f"Performance: {results[best_params]:.4f}")
