@@ -15,7 +15,7 @@ import time
 import multiprocessing as mp
 
 # np.seterr(all='raise')
-test = "fulltuningmp"
+test = "detrain"
 
 Xr, Yr = pr.preprocess_data("data/machine.data")
 
@@ -44,9 +44,7 @@ if test == "fulltuningmp":
   nodes = [13, 25, 30, 5, 7, 38]
   is_classifier = [False, False, False, True, True, True]
   demps = [mp.Process(target=mptune, args=(paths[0], nodes[0], is_classifier[0], False))]
-  psomps = [mp.Process(target=mptune, args=(paths[0], nodes[0], is_classifier[0], True)),
-            mp.Process(target=mptune, args=(paths[2], nodes[2], is_classifier[2], True)),
-            mp.Process(target=mptune, args=(paths[5], nodes[5], is_classifier[5], True))]
+  psomps = [mp.Process(target=mptune, args=(paths[0], nodes[0], is_classifier[0], True))]
   for demp in demps:
     demp.start()
   for psomp in psomps:
@@ -92,20 +90,33 @@ if test == "fulltuning2":
     psofile.flush()
 
 if test == "detrain":
-  X, Y, X_test, Y_test = ut.generateTestData(Xr, Yr)
-  de = diff(X, Y, 30, 1, 50, 0.5, 0.5, False)
-  start = time.time()
+  X, Y, X_test, Y_test = ut.generateTestData(Xc, Yc)
+  de = diff(X, Y, 5, 0, 46, 1.84, 0.45, True)
+  
   de.train(X_test, Y_test)
-  end = time.time()
-  print(end - start)
+  pred = de.predict(X_test)
+  print(np.mean(pred == Y_test))
+  de.initialize_model(X, Y)
+  de.train(X_test, Y_test)
+  pred = de.predict(X_test)
+  print(np.mean(pred == Y_test))
+  de.initialize_model(X, Y)
+  de.train(X_test, Y_test)
+  pred = de.predict(X_test)
+  print(np.mean(pred == Y_test))
+  de.initialize_model(X, Y)
+  de.train(X_test, Y_test)
+  pred = de.predict(X_test)
+  print(np.mean(pred == Y_test))
+  
+  # results = xv.tenfoldcrossvalidation(X, Y, de)
+  # print(np.mean([ev.zero_one_loss(r[0], r[1]) for r in results]))
 
 if test =="psotrain":
-  X, Y, X_test, Y_test = ut.generateTestData(Xr, Yr)
-  pso = PSO(X, Y, 30, 1, 50, 0.5, 0.5, 0.5, False)
-  start_time = time.time()
-  pso.train(X_test, Y_test)
-  end_time = time.time()
-  print(end_time - start_time)
+  X, Y, X_test, Y_test = ut.generateTestData(Xc, Yc)
+  pso = PSO(X, Y, 5, 0, 41, 0.61, 0.51, 0.083, True)
+  results = xv.tenfoldcrossvalidation(X, Y, pso)
+  print(ev.zero_one_loss(Y_test, pred))
 
 if test == "psotuning":
   is_classifier = False

@@ -16,6 +16,8 @@ class DifferentialEvolution:
         self.initialize_model(X_train, Y_train)
     
     def initialize_model(self, X_train, Y_train):
+        self.nets : list[ffNN.ffNN] = [None] * len(self.nets)
+        self.perf = None
         self.X_train = X_train
         self.Y_train = Y_train
         for i in range(len(self.nets)):
@@ -80,7 +82,7 @@ class DifferentialEvolution:
             offspring_weights = self._generate_offspring(self.nets[i].weights, donor_weights)
             offspring_biases = self._generate_offspring(self.nets[i].biases, donor_biases)
             # initialize a ffNN and set its weights to the offspring values
-            offspring_net = ffNN.ffNN(self.X_train, self.Y_train, self.nets[0].weights[1].shape[0], self.nets[0].layers - 2, self.is_classifier)
+            offspring_net = ffNN.ffNN(self.X_train, self.Y_train, self.nets[0].weights[0].shape[0], self.nets[0].layers - 2, self.is_classifier)
             offspring_net.weights = offspring_weights
             offspring_net.biases = offspring_biases
             # get the performance of the offspring net
