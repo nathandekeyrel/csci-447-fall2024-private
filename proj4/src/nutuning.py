@@ -66,10 +66,8 @@ def tunePSO(X, Y, n_nodes_per_layer, n_hidden_layers, is_classifier):
     :param Y: Target vector
     :param n_nodes_per_layer: the number of nodes in each hidden layer
     :param n_hidden_layers: the number of hidden layers
-    :return learning_rate:
-    :return batch_size: batch size as a factor of number of samples
-    :return n_hidden: the number of hidden nodes per layer as a factor of number of inputs
-    :return momentum: 
+    :param is_classifier: whether the model is for a classifier
+    :return: the best performing population, inertia, cognitive weight, and social weight
     """
     Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
     pop_list = np.random.randint(ps_range[0], ps_range[1] + 1, testsize)
@@ -101,10 +99,8 @@ def tuneDE(X, Y, n_nodes_per_layer, n_hidden_layers, is_classifier):
     :param Y: Target vector
     :param n_nodes_per_layer: the number of nodes in each hidden layer
     :param n_hidden_layers: the number of hidden layers
-    :return learning_rate:
-    :return batch_size: batch size as a factor of number of samples
-    :return n_hidden: the number of hidden nodes per layer as a factor of number of inputs
-    :return momentum: 
+    :param is_classifier: whether the model is for a classifier
+    :return: the best performing population, scaling, and binomial crossover rate
     """
     Xs, Ys, X_test, Y_test = generateStartingTestData(X, Y)
     pop_list = np.random.randint(ps_range[0], ps_range[1] + 1, testsize)
@@ -128,6 +124,12 @@ def tuneDE(X, Y, n_nodes_per_layer, n_hidden_layers, is_classifier):
     return pop_list[index], scaling_list[index], binom_list[index]
 
 def performance(model, X_test, Y_test):
+    """Helper function for finding the performance of a model. Inexplicably different from the other ones
+    
+    :param model: the model that is being tested
+    :param X_test: the X vectors to be used to judge performance
+    :param Y_test: the target values
+    """
     pred = model.predict(X_test)
     if model.is_classifier:
         results = np.mean(pred != Y_test)
