@@ -4,6 +4,17 @@ from copy import deepcopy as cp
 
 class ffNNbackprop:
   def __init__(self, X, Y, nhl, npl, bs, lr, m, is_cl):
+    """initializer for the backprop training model
+    
+    :param X: the X values for training
+    :param Y: the target values
+    :param nhl: the number of hidden layers
+    :param npl: the number of nodes per hidden layer
+    :param bs: the batch size
+    :param lr: the learning rate
+    :param m: the momentum
+    :param is_cl: whether the model is for a classifier
+    """
     self.net = fn.ffNN(X, Y, npl, nhl, is_cl)
     self.dw_vel = [np.zeros(mat.shape) for mat in self.net.weights]
     self.db_vel = [np.zeros(mat.shape) for mat in self.net.biases]

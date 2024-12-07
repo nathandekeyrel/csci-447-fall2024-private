@@ -14,6 +14,12 @@ from numpy import mean, square
 import time
 import multiprocessing as mp
 
+"""
+DON'T LOOK AT MEEE
+
+this is just for testing stuff
+"""
+
 # np.seterr(all='raise')
 test = "fulltuningmp"
 
