@@ -5,7 +5,7 @@ from DifferentialEvolution import DifferentialEvolution as DE
 import copy
 
 # ranges for the hyperparameters to be tuned
-ps_range = [20,60]
+ps_range = [20, 60]
 pso_inertia_range = [0, 1]
 pso_cog_range = [0, 1]
 pso_soc_range = [0, 1]
@@ -59,6 +59,7 @@ def generateTrainingData(Xs, Ys, i):
     Y_train = kfxv.mergedata(Ys)
     return X_train, Y_train
 
+
 def tunePSO(X, Y, n_nodes_per_layer, n_hidden_layers, is_classifier):
     """Tune the k and sigma parameters for KNN Regression using 10-fold cross-validation.
 
@@ -92,6 +93,7 @@ def tunePSO(X, Y, n_nodes_per_layer, n_hidden_layers, is_classifier):
     index = np.argmin(perfarr)
     return pop_list[index], inertia_list[index], cog_list[index], soc_list[index]
 
+
 def tuneDE(X, Y, n_nodes_per_layer, n_hidden_layers, is_classifier):
     """Tune the k and sigma parameters for KNN Regression using 10-fold cross-validation.
 
@@ -122,6 +124,7 @@ def tuneDE(X, Y, n_nodes_per_layer, n_hidden_layers, is_classifier):
     # get the indices and put them into a tuple
     index = np.argmin(perfarr)
     return pop_list[index], scaling_list[index], binom_list[index]
+
 
 def performance(model, X_test, Y_test):
     """Helper function for finding the performance of a model. Inexplicably different from the other ones
