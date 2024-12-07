@@ -9,6 +9,11 @@ from ParticleSwarmOptimization import PSO
 
 class DatasetConfig:
     def __init__(self, name, filepath, nodes_per_layer):
+        """Initialize the Dataset
+        :param name: name of the dataset
+        :param filepath: its filepath
+        :param nodes_per_layer: number of nodes per hidden layer
+        """
         self.name = name
         self.filepath = filepath
         self.nodes_per_layer = nodes_per_layer
@@ -16,12 +21,22 @@ class DatasetConfig:
 
 class ModelConfig:
     def __init__(self, name, model_class, params_by_layer):
+        """Initialize the model
+        :param name: algorithm
+        :param model_class: architecture
+        :param params_by_layer: params depending on network architecture
+        """
         self.name = name
         self.model_class = model_class
         self.params_by_layer = params_by_layer
 
 
 def load_and_preprocess_data(datasets):
+    """Load and preprocess the data. Properly formatting for current assignment
+
+    :param datasets: the csv
+    :return: the data as a dictionary
+    """
     data_dict = {}
     print("Loading and preprocessing datasets...")
     for dataset in datasets:
@@ -31,6 +46,16 @@ def load_and_preprocess_data(datasets):
 
 
 def run_experiment(X, y, model_config, n_hidden_layers, n_nodes, is_classifier=True):
+    """Method to handle the running of an individual experiment.
+
+    :param X: features
+    :param y: target
+    :param model_config: the configured model
+    :param n_hidden_layers: number of hidden layers
+    :param n_nodes: number of nodes per hidden layer
+    :param is_classifier: true for classification, false for regression
+    :return: metrics tracked by the experiment
+    """
     params = model_config.params_by_layer[n_hidden_layers].copy()
     params.update({
         'X_train': X,
@@ -46,6 +71,7 @@ def run_experiment(X, y, model_config, n_hidden_layers, n_nodes, is_classifier=T
     results = kfxc.tenfoldcrossvalidation(X, y, model)
 
     if is_classifier:
+        # all our metrics for classification
         accuracy = 1 - np.mean([ev.zero_one_loss(r[0], r[1]) for r in results])
         all_true = np.concatenate([r[0] for r in results])
         all_pred = np.concatenate([r[1] for r in results])
@@ -57,6 +83,7 @@ def run_experiment(X, y, model_config, n_hidden_layers, n_nodes, is_classifier=T
         print(f"  Precision: {precision}")
         print(f"  Recall: {recall}")
     else:
+        # all our metrics for regression
         all_true = np.concatenate([r[0] for r in results])
         all_pred = np.concatenate([r[1] for r in results])
         mse_val = ev.mse(all_true, all_pred)
@@ -70,6 +97,12 @@ def run_experiment(X, y, model_config, n_hidden_layers, n_nodes, is_classifier=T
 
 
 def run_all_experiments(data_dict, model_configs, is_classifier=True):
+    """Run all experiments
+
+    :param data_dict: the data dictionary
+    :param model_configs: the model config
+    :param is_classifier: if it's a classifier or not
+    """
     for dataset_name, (X, y, nodes_per_layer) in data_dict.items():
         print("=" * 75)
         print(f"{dataset_name}:")
